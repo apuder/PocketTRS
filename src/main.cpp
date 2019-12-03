@@ -3,14 +3,7 @@
 #include "trs.h"
 #include "trs-keyboard.h"
 #include "sound.h"
-
-
-//Pin connected to ST_CP of 74HC595
-int latchPin = 27;
-//Pin connected to SH_CP of 74HC595
-int clockPin = 4;
-////Pin connected to DS of 74HC595
-int dataPin = 2;
+#include "io.h"
 
 void setup() {
   Serial.begin(115200);
@@ -29,21 +22,22 @@ void setup() {
   Canvas.clear();
   init_sound();
   z80_reset(0);
-  pinMode(latchPin, OUTPUT);
-  pinMode(clockPin, OUTPUT);
-  pinMode(dataPin, OUTPUT);
+  init_io();
 }
 
 void loop() {
   #if 0
-  for (int j = 0; j < 256; j++) {
+  byte b = 0;
+  while (true) {
     //ground latchPin and hold low for as long as you are transmitting
     digitalWrite(latchPin, LOW);
-    shiftOut(dataPin, clockPin, MSBFIRST, j);
+    shiftOut(dataPin, clockPin, MSBFIRST, b);
+    shiftOut(dataPin, clockPin, MSBFIRST, b);
     //return the latch pin high to signal chip that it
     //no longer needs to listen for information
     digitalWrite(latchPin, HIGH);
-    delay(1000);
+    delay(500);
+    b ^= 0xff;
   }
   #endif
   static fabgl::VirtualKey lastvk = fabgl::VK_NONE;

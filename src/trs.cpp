@@ -3,6 +3,7 @@
 #include "font.h"
 #include "trs.h"
 #include "sound.h"
+#include "io.h"
 #include <unistd.h>
 #include <time.h>
 #include <sys/time.h>
@@ -95,10 +96,30 @@ void z80_mem_write(int param, ushort address, byte data)
 
 static byte z80_io_read(int param, ushort address)
 {
-  if (address == 0xe0) {
+  address &= 0xff;
+  switch(address) {
+  case 0xe0:
     // This will signal that a RTC INT happened. See ROM address 0x35D8
     return ~4;
-  } else {
+  case 31:
+  case 0xc0:
+  case 0xc1:
+  case 0xc2:
+  case 0xc3:
+  case 0xc4:
+  case 0xc5:
+  case 0xc6:
+  case 0xc7:
+  case 0xc8:
+  case 0xc9:
+  case 0xca:
+  case 0xcb:
+  case 0xcc:
+  case 0xcd:
+  case 0xce:
+  case 0xcf:
+    return z80_in(address);
+  default:
     return 255;
   }
 }
@@ -113,6 +134,25 @@ static void z80_io_write(int param, ushort address, byte data)
     break;
   case 0xff:
     transition_out(data, total_tstate_count);
+    break;
+  case 31:
+  case 0xc0:
+  case 0xc1:
+  case 0xc2:
+  case 0xc3:
+  case 0xc4:
+  case 0xc5:
+  case 0xc6:
+  case 0xc7:
+  case 0xc8:
+  case 0xc9:
+  case 0xca:
+  case 0xcb:
+  case 0xcc:
+  case 0xcd:
+  case 0xce:
+  case 0xcf:
+    z80_out(address, data);
     break;
   }
 }
@@ -156,7 +196,7 @@ static void sync_time_with_host()
 void z80_reset(ushort entryAddr)
 {
   memset((void*) ram, 0, sizeof(ram));
-  entryAddr = load_cosmic();
+  //entryAddr = load_cosmic();
   memset(&z80ctx, 0, sizeof(Z80Context));
   Z80RESET(&z80ctx);
   z80ctx.PC = entryAddr;
