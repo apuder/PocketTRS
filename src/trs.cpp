@@ -120,6 +120,9 @@ static byte z80_io_read(int param, ushort address)
   case 0xcf:
     return z80_in(address);
   default:
+    Serial.print("in(");
+    Serial.print(address);
+    Serial.println(")");
     return 255;
   }
 }
@@ -153,6 +156,13 @@ static void z80_io_write(int param, ushort address, byte data)
   case 0xce:
   case 0xcf:
     z80_out(address, data);
+    break;
+  default:
+    Serial.print("out(");
+    Serial.print(address);
+    Serial.print(",");
+    Serial.print(data);
+    Serial.println(")");
     break;
   }
 }

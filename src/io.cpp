@@ -24,7 +24,7 @@ static void write_shifter(uint8_t flags, uint8_t address)
 
 void z80_out(uint8_t address, uint8_t data)
 {
-  #if 1
+  #if 0
   Serial.print("out(");
   Serial.print(address);
   Serial.print(",");
@@ -40,8 +40,8 @@ void z80_out(uint8_t address, uint8_t data)
   REG_WRITE(GPIO_OUT_W1TC_REG, d);
 
   write_shifter(TRS_ENEXTIO | TRS_IORQ | TRS_OUT, address);
-  delay(2);
-  //while(digitalRead(TRS_IOBUSWAIT) == LOW) ;
+  for (volatile int i = 0; i < DELAY_IOBUSWAIT; i++) ;
+  while (GPIO.in1.data & (1 << (TRS_IOBUSWAIT - 32))) ;
   write_shifter(0, 0);
   GPIO_OUTPUT_DISABLE(GPIO_DATA_BUS_MASK);
 }
@@ -49,11 +49,11 @@ void z80_out(uint8_t address, uint8_t data)
 uint8_t z80_in(uint8_t address)
 {
   write_shifter(TRS_ENEXTIO | TRS_IORQ | TRS_IN, address);
-  delay(2);
-  //while(digitalRead(TRS_IOBUSWAIT) == LOW) ;
+  for (volatile int i = 0; i < DELAY_IOBUSWAIT; i++) ;
+  while (GPIO.in1.data & (1 << (TRS_IOBUSWAIT - 32))) ;
   uint8_t data = GPIO.in >> 12;
   write_shifter(0, 0);
-  #if 1
+  #if 0
   Serial.print("in(");
   Serial.print(address);
   Serial.print("): ");

@@ -17,3 +17,5 @@
 #define TRS_M1 (1 << 2)
 #define TRS_IORQ (1 << 3)
 #define TRS_ENEXTIO (1 << 4)
+
+#define DELAY_IOBUSWAIT 5000
