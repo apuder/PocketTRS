@@ -17,16 +17,12 @@
 
 static Z80Context z80ctx;
 
-static volatile byte ram[RAM_SIZE * 1024];
+static volatile byte ram[64 * 1024 - model3_frehd_rom_len];
 
 void poke_mem(uint16_t address, uint8_t data)
 {
   if (address < model3_frehd_rom_len) {
     // Trying to write to ROM
-    return;
-  }
-  if (address >= RAM_SIZE * 1024 + model3_frehd_rom_len) {
-    // Access beyond size of available RAM
     return;
   }
   ram[address - model3_frehd_rom_len] = data;
@@ -41,44 +37,12 @@ uint8_t peek_mem(uint16_t address)
   if (address < model3_frehd_rom_len) {
     // Read from ROM
     return model3_frehd_rom[address];
-  } else if (address >= RAM_SIZE * 1024 + model3_frehd_rom_len) {
-    // Access beyond size of available RAM
-    return 0;
   } else {
     // Access RAM
     return ram[address - model3_frehd_rom_len];
   }
 }
 
-//-------------------------------------------------------------
-//#include "rom/cosmic.cpp-inc"
-#include "rom/defense.cpp-inc"
-
-unsigned int load_cosmic()
-{
-  int i = 0;
-  while (1) {
-    unsigned char b = DEFENSE_CMD[i++];
-    unsigned int len = DEFENSE_CMD[i++];
-    if (b == 1) {
-      if (len < 3) {
-        len += 256;
-      }
-      unsigned int addr = DEFENSE_CMD[i++] | (DEFENSE_CMD[i++] << 8);
-      addr -= 14 * 1024;
-      for (int x = 0; x < len - 2; x++) {
-        assert(addr < sizeof(ram));
-        ram[addr++] = DEFENSE_CMD[i++];
-      }
-    } else if (b == 2) {
-      return DEFENSE_CMD[i++] | (DEFENSE_CMD[i++] << 8);
-    } else if (b == 5) {
-      i += len;
-    } else {
-      Serial.println("Illegal block");
-    }
-  }
-}
 //------------------------------------------------------------------
 
 
@@ -98,9 +62,6 @@ static byte z80_io_read(int param, ushort address)
 {
   address &= 0xff;
   switch(address) {
-  case 0xe0:
-    // This will signal that a RTC INT happened. See ROM address 0x35D8
-    return ~4;
   case 31:
   case 0xc0:
   case 0xc1:
@@ -118,6 +79,8 @@ static byte z80_io_read(int param, ushort address)
   case 0xcd:
   case 0xce:
   case 0xcf:
+  case 0xe0:
+  case 0xec:
     return z80_in(address);
   default:
     Serial.print("in(");
@@ -155,6 +118,7 @@ static void z80_io_write(int param, ushort address, byte data)
   case 0xcd:
   case 0xce:
   case 0xcf:
+  case 0xec:
     z80_out(address, data);
     break;
   default:
@@ -206,7 +170,6 @@ static void sync_time_with_host()
 void z80_reset(ushort entryAddr)
 {
   memset((void*) ram, 0, sizeof(ram));
-  //entryAddr = load_cosmic();
   memset(&z80ctx, 0, sizeof(Z80Context));
   Z80RESET(&z80ctx);
   z80ctx.PC = entryAddr;
