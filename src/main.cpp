@@ -3,14 +3,16 @@
 #include "trs.h"
 #include "trs-keyboard.h"
 #include "sound.h"
+#include "cassette.h"
 #include "io.h"
+#include "config.h"
 
 void setup() {
   Serial.begin(115200);
   Serial.print("Heap size before VGA init: ");
   Serial.println(ESP.getFreeHeap());
   PS2Controller.begin(PS2Preset::KeyboardPort0);
-  VGAController.begin(GPIO_NUM_22, GPIO_NUM_21, GPIO_NUM_23, GPIO_NUM_26, GPIO_NUM_5);
+  VGAController.begin(VGA_RED, VGA_GREEN, VGA_BLUE, VGA_HSYNC, VGA_VSYNC);
   VGAController.setResolution(VGA_512x192_60Hz);
   VGAController.enableBackgroundPrimitiveExecution(false);
   VGAController.enableBackgroundPrimitiveTimeout(false);
@@ -22,6 +24,7 @@ void setup() {
   Canvas.clear();
   init_sound();
   z80_reset(0);
+  init_cassette_in();
   init_io();
 }
 

@@ -4,6 +4,8 @@
 
 #include <stdint.h>
 
+typedef unsigned long long tstate_t;
+
 // Model III specs
 #define TIMER_HZ_M3 30
 #define CLOCK_MHZ_M3 2.02752

@@ -81,7 +81,8 @@ static byte z80_io_read(int param, ushort address)
   case 0xcf:
   case 0xe0:
   case 0xec:
-    return z80_in(address);
+  case 0xff:
+    return z80_in(address, total_tstate_count);
   default:
     Serial.print("in(");
     Serial.print(address);
@@ -97,9 +98,6 @@ static void z80_io_write(int param, ushort address, byte data)
   case 0xef:
     /* screen mode select is on D2 */
     trs_screen_expanded((data & 0x04) >> 2);
-    break;
-  case 0xff:
-    transition_out(data, total_tstate_count);
     break;
   case 31:
   case 0xc0:
@@ -119,7 +117,8 @@ static void z80_io_write(int param, ushort address, byte data)
   case 0xce:
   case 0xcf:
   case 0xec:
-    z80_out(address, data);
+  case 0xff:
+    z80_out(address, data, total_tstate_count);
     break;
   default:
     Serial.print("out(");

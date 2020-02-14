@@ -2,8 +2,11 @@
 
 #include <Arduino.h>
 #include "driver/gpio.h"
+#include "cassette.h"
+#include "sound.h"
 #include "config.h"
 
+#define DISABLE_IO 1
 
 // GPIO pins 12-19
 #define GPIO_DATA_BUS_MASK 0b11111111000000000000
@@ -12,6 +15,7 @@
 
 #define GPIO_OUTPUT_ENABLE(mask) GPIO.enable_w1ts = (mask)
 
+static uint8_t modeimage = 8;
 static uint8_t port_0xec = 0xff;
 
 static void write_shifter(uint8_t flags, uint8_t address)
@@ -23,11 +27,21 @@ static void write_shifter(uint8_t flags, uint8_t address)
   digitalWrite(SHIFTER_LATCH, HIGH);
 }
 
-void z80_out(uint8_t address, uint8_t data)
+void z80_out(uint8_t address, uint8_t data, tstate_t z80_state_t_count)
 {
-  if (address == 0xec) {
-    port_0xec = data;
-    return;
+  switch(address) {
+    case 0xEC:
+      port_0xec = data;
+      // Fall through
+    case 0xED:
+    case 0xEE:
+    case 0xEF:
+      modeimage = data;
+      return;
+    case 0xff:
+      transition_out(data, z80_state_t_count);
+      break;
+
   }
   #if 0
   if (address == 31) {
@@ -38,6 +52,7 @@ void z80_out(uint8_t address, uint8_t data)
     Serial.println(")");
   }
   #endif
+#ifndef DISABLE_IO
   // Write data to GPIO pins 12-19
   GPIO_OUTPUT_ENABLE(GPIO_DATA_BUS_MASK);
   uint32_t d = data;
@@ -51,18 +66,31 @@ void z80_out(uint8_t address, uint8_t data)
   while (!(GPIO.in1.data & (1 << (TRS_IOBUSWAIT - 32)))) ;
   write_shifter(0, 0);
   GPIO_OUTPUT_DISABLE(GPIO_DATA_BUS_MASK);
+#endif
 }
 
-uint8_t z80_in(uint8_t address)
+uint8_t z80_in(uint8_t address, tstate_t z80_state_t_count)
 {
-  if (address == 0xec) {
-    return port_0xec;
-  }
-  if (address == 0xe0) {
-    // Bit 2 is 0 to signal that a RTC INT happened. See ROM address 0x35D8
-    uint8_t b = 0b11110011;
-    b |= GPIO.in1.data & (1 << (TRS_IOBUSINT - 32)) ? (1 << 3) : 0;
-    return b;
+  switch(address) {
+    case 0xec:
+      return port_0xec;
+#ifdef DISABLE_IO
+    case 0xe0:
+      // This will signal that a RTC INT happened. See ROM address 0x35D8
+      return ~4; 
+    default:
+      return 0xff;
+#else
+    case 0xe0:
+    {
+      // Bit 2 is 0 to signal that a RTC INT happened. See ROM address 0x35D8
+      uint8_t b = 0b11110011;
+      b |= GPIO.in1.data & (1 << (TRS_IOBUSINT - 32)) ? (1 << 3) : 0;
+      return b;
+    }
+#endif
+    case 0xff:
+      return (modeimage & 0x7e) | trs_cassette_in(z80_state_t_count);
   }
   if ((port_0xec & (1 << 4)) == 0) {
     // I/O disabled
@@ -95,6 +123,7 @@ void test_io(uint32_t d)
 
 void init_io()
 {
+#ifndef DISABLE_IO
   gpio_config_t gpioConfig;
 
   // GPIO pins 12-19 (8 pins) are used for data bus
@@ -115,6 +144,7 @@ void init_io()
   pinMode(TRS_IOBUSWAIT, INPUT);
 
   write_shifter(0, 0);
+#endif
 
 #if 0
 z80_out(0xc5, 3);

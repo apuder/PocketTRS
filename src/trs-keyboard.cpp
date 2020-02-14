@@ -186,7 +186,7 @@ static const TRSKey trsKeys[] = {
   {64, 64}, //  VK_KP_RIGHT
   {0, 0}, //  VK_KP_CENTER
   {16, ADD_SHIFT_KEY | 1}, //  VK_F1
-  {0, 0}, //  VK_F2
+  {64, 2}, //  VK_F2
   {0, 0}, //  VK_F3
   {0, 0}, //  VK_F4
   {0, 0}, //  VK_F5
