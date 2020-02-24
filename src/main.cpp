@@ -24,7 +24,7 @@ void setup() {
   Canvas.clear();
   init_sound();
   z80_reset(0);
-  init_cassette_in();
+  //init_cassette_in();
   init_io();
 }
 

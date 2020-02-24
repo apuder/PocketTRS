@@ -4,27 +4,34 @@
 #include "driver/gpio.h"
 #include "cassette.h"
 #include "sound.h"
+#include "i2c.h"
 #include "config.h"
 
-#define DISABLE_IO 1
-
-// GPIO pins 12-19
-#define GPIO_DATA_BUS_MASK 0b11111111000000000000
-
-#define GPIO_OUTPUT_DISABLE(mask) GPIO.enable_w1tc = (mask)
-
-#define GPIO_OUTPUT_ENABLE(mask) GPIO.enable_w1ts = (mask)
 
 static uint8_t modeimage = 8;
 static uint8_t port_0xec = 0xff;
 
-static void write_shifter(uint8_t flags, uint8_t address)
+
+static void set_iodirb(uint8_t dir)
 {
-  digitalWrite(SHIFTER_LATCH, LOW);
-  flags ^= 0xff;
-  shiftOut(SHIFTER_DATA, SHIFTER_CLOCK, LSBFIRST, address);
-  shiftOut(SHIFTER_DATA, SHIFTER_CLOCK, LSBFIRST, flags);
-  digitalWrite(SHIFTER_LATCH, HIGH);
+  static uint8_t current_dir = 0xff;
+
+  if (dir == current_dir) {
+    return;
+  }
+  writeMCP(MCP23017_ADDRESS, MCP23017_IODIRB, dir);
+  current_dir = dir;
+}
+
+static void set_gpioa(uint8_t address)
+{
+  static uint8_t current_address = 0;
+
+  if (address == current_address) {
+    return;
+  }
+  writeMCP(MCP23017_ADDRESS, MCP23017_GPIOA, address);
+  current_address = address;
 }
 
 void z80_out(uint8_t address, uint8_t data, tstate_t z80_state_t_count)
@@ -53,19 +60,18 @@ void z80_out(uint8_t address, uint8_t data, tstate_t z80_state_t_count)
   }
   #endif
 #ifndef DISABLE_IO
-  // Write data to GPIO pins 12-19
-  GPIO_OUTPUT_ENABLE(GPIO_DATA_BUS_MASK);
-  uint32_t d = data;
-  d <<= 12;
-  REG_WRITE(GPIO_OUT_W1TS_REG, d);
-  d = d ^ GPIO_DATA_BUS_MASK;
-  REG_WRITE(GPIO_OUT_W1TC_REG, d);
-
-  write_shifter(TRS_ENEXTIO | TRS_IORQ | TRS_OUT, address);
-  for (volatile int i = 0; i < DELAY_IOBUSWAIT; i++) ;
-  while (!(GPIO.in1.data & (1 << (TRS_IOBUSWAIT - 32)))) ;
-  write_shifter(0, 0);
-  GPIO_OUTPUT_DISABLE(GPIO_DATA_BUS_MASK);
+  // Configure port B as output
+  set_iodirb(0);
+  // Set the I/O address on port A
+  set_gpioa(address);
+  // Write the data to port B
+  writeMCP(MCP23017_ADDRESS, MCP23017_GPIOB, data);
+  // Assert IORQ_N and OUT_N
+  writeMCP(MCP23008_ADDRESS, MCP23008_GPIO, ~(TRS_IORQ | TRS_OUT));
+  // Busy wait while IOBUSWAIT_N is asserted
+  while (!(readMCP(MCP23008_ADDRESS, MCP23008_GPIO) & TRS_IOBUSWAIT)) ;
+  // Release IORQ_N and OUT_N
+  writeMCP(MCP23008_ADDRESS, MCP23008_GPIO, 0xff);
 #endif
 }
 
@@ -77,7 +83,7 @@ uint8_t z80_in(uint8_t address, tstate_t z80_state_t_count)
 #ifdef DISABLE_IO
     case 0xe0:
       // This will signal that a RTC INT happened. See ROM address 0x35D8
-      return ~4; 
+      return ~4;
     default:
       return 0xff;
 #else
@@ -85,7 +91,7 @@ uint8_t z80_in(uint8_t address, tstate_t z80_state_t_count)
     {
       // Bit 2 is 0 to signal that a RTC INT happened. See ROM address 0x35D8
       uint8_t b = 0b11110011;
-      b |= GPIO.in1.data & (1 << (TRS_IOBUSINT - 32)) ? (1 << 3) : 0;
+      b |= (readMCP(MCP23008_ADDRESS, MCP23008_GPIO) & TRS_IOBUSINT) ? (1 << 3) : 0;
       return b;
     }
 #endif
@@ -96,11 +102,17 @@ uint8_t z80_in(uint8_t address, tstate_t z80_state_t_count)
     // I/O disabled
     return 0xff;
   }
-  write_shifter(TRS_ENEXTIO | TRS_IORQ | TRS_IN, address);
-  for (volatile int i = 0; i < DELAY_IOBUSWAIT; i++) ;
-  while (!(GPIO.in1.data & (1 << (TRS_IOBUSWAIT - 32)))) ;
-  uint8_t data = GPIO.in >> 12;
-  write_shifter(0, 0);
+  // Configure port B as input
+  set_iodirb(0xff);
+  // Set the I/O address on port A
+  set_gpioa(address);
+  // Assert IORQ_N and IN_N
+  writeMCP(MCP23008_ADDRESS, MCP23008_GPIO, ~(TRS_IORQ | TRS_IN));
+  while (!(readMCP(MCP23008_ADDRESS, MCP23008_GPIO) & TRS_IOBUSWAIT)) ;
+  // Busy wait while IOBUSWAIT_N is asserted
+  uint8_t data = readMCP(MCP23017_ADDRESS, MCP23017_GPIOB);
+  // Release IORQ_N and IN_N
+  writeMCP(MCP23008_ADDRESS, MCP23008_GPIO, 0xff);
   #if 0
   if (address == 31) {
     Serial.print("in(");
@@ -112,38 +124,12 @@ uint8_t z80_in(uint8_t address, tstate_t z80_state_t_count)
   return data;
 }
 
-void test_io(uint32_t d)
-{
-  GPIO_OUTPUT_ENABLE(GPIO_DATA_BUS_MASK);
-  d <<= 12;
-  REG_WRITE(GPIO_OUT_W1TS_REG, d);
-  d = d ^ GPIO_DATA_BUS_MASK;
-  REG_WRITE(GPIO_OUT_W1TC_REG, d);
-}
+void init_i2c();
 
 void init_io()
 {
 #ifndef DISABLE_IO
-  gpio_config_t gpioConfig;
-
-  // GPIO pins 12-19 (8 pins) are used for data bus
-  gpioConfig.pin_bit_mask = GPIO_SEL_12 | GPIO_SEL_13 | GPIO_SEL_14 |
-    GPIO_SEL_15 | GPIO_SEL_16 |
-    GPIO_SEL_17 | GPIO_SEL_18 | GPIO_SEL_19;
-  gpioConfig.mode = GPIO_MODE_INPUT;
-  gpioConfig.pull_up_en = GPIO_PULLUP_DISABLE;
-  gpioConfig.pull_down_en = GPIO_PULLDOWN_DISABLE;
-  gpioConfig.intr_type = GPIO_INTR_DISABLE;
-  gpio_config(&gpioConfig);
-
-  pinMode(SHIFTER_LATCH, OUTPUT);
-  pinMode(SHIFTER_CLOCK, OUTPUT);
-  pinMode(SHIFTER_DATA, OUTPUT);
-
-  pinMode(TRS_IOBUSINT, INPUT);
-  pinMode(TRS_IOBUSWAIT, INPUT);
-
-  write_shifter(0, 0);
+  init_i2c();
 #endif
 
 #if 0
