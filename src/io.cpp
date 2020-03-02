@@ -4,7 +4,7 @@
 #include "driver/gpio.h"
 #include "cassette.h"
 #include "sound.h"
-#include "i2c.h"
+#include "spi.h"
 #include "config.h"
 
 
@@ -19,7 +19,7 @@ static void set_iodirb(uint8_t dir)
   if (dir == current_dir) {
     return;
   }
-  writeMCP(MCP23017_ADDRESS, MCP23017_IODIRB, dir);
+  writeMCP(MCP23S17, MCP23S17_IODIRB, dir);
   current_dir = dir;
 }
 
@@ -30,7 +30,7 @@ static void set_gpioa(uint8_t address)
   if (address == current_address) {
     return;
   }
-  writeMCP(MCP23017_ADDRESS, MCP23017_GPIOA, address);
+  writeMCP(MCP23S17, MCP23S17_GPIOA, address);
   current_address = address;
 }
 
@@ -65,13 +65,13 @@ void z80_out(uint8_t address, uint8_t data, tstate_t z80_state_t_count)
   // Set the I/O address on port A
   set_gpioa(address);
   // Write the data to port B
-  writeMCP(MCP23017_ADDRESS, MCP23017_GPIOB, data);
+  writeMCP(MCP23S17, MCP23S17_GPIOB, data);
   // Assert IORQ_N and OUT_N
-  writeMCP(MCP23008_ADDRESS, MCP23008_GPIO, ~(TRS_IORQ | TRS_OUT));
+  writeMCP(MCP23S08, MCP23S08_GPIO, ~(TRS_IORQ | TRS_OUT));
   // Busy wait while IOBUSWAIT_N is asserted
-  while (!(readMCP(MCP23008_ADDRESS, MCP23008_GPIO) & TRS_IOBUSWAIT)) ;
+  while (!(readMCP(MCP23S08, MCP23S08_GPIO) & TRS_IOBUSWAIT)) ;
   // Release IORQ_N and OUT_N
-  writeMCP(MCP23008_ADDRESS, MCP23008_GPIO, 0xff);
+  writeMCP(MCP23S08, MCP23S08_GPIO, 0xff);
 #endif
 }
 
@@ -91,7 +91,7 @@ uint8_t z80_in(uint8_t address, tstate_t z80_state_t_count)
     {
       // Bit 2 is 0 to signal that a RTC INT happened. See ROM address 0x35D8
       uint8_t b = 0b11110011;
-      b |= (readMCP(MCP23008_ADDRESS, MCP23008_GPIO) & TRS_IOBUSINT) ? (1 << 3) : 0;
+      b |= (readMCP(MCP23S08, MCP23S08_GPIO) & TRS_IOBUSINT) ? (1 << 3) : 0;
       return b;
     }
 #endif
@@ -107,12 +107,12 @@ uint8_t z80_in(uint8_t address, tstate_t z80_state_t_count)
   // Set the I/O address on port A
   set_gpioa(address);
   // Assert IORQ_N and IN_N
-  writeMCP(MCP23008_ADDRESS, MCP23008_GPIO, ~(TRS_IORQ | TRS_IN));
-  while (!(readMCP(MCP23008_ADDRESS, MCP23008_GPIO) & TRS_IOBUSWAIT)) ;
+  writeMCP(MCP23S08, MCP23S08_GPIO, ~(TRS_IORQ | TRS_IN));
+  while (!(readMCP(MCP23S08, MCP23S08_GPIO) & TRS_IOBUSWAIT)) ;
   // Busy wait while IOBUSWAIT_N is asserted
-  uint8_t data = readMCP(MCP23017_ADDRESS, MCP23017_GPIOB);
+  uint8_t data = readMCP(MCP23S17, MCP23S17_GPIOB);
   // Release IORQ_N and IN_N
-  writeMCP(MCP23008_ADDRESS, MCP23008_GPIO, 0xff);
+  writeMCP(MCP23S08, MCP23S08_GPIO, 0xff);
   #if 0
   if (address == 31) {
     Serial.print("in(");
@@ -124,12 +124,10 @@ uint8_t z80_in(uint8_t address, tstate_t z80_state_t_count)
   return data;
 }
 
-void init_i2c();
-
 void init_io()
 {
 #ifndef DISABLE_IO
-  init_i2c();
+  init_spi();
 #endif
 
 #if 0
