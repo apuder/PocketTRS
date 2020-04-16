@@ -23,11 +23,9 @@ void setup() {
   Serial.println(ESP.getFreeHeap());
   Canvas.clear();
   init_sound();
-  Serial.println("Ready");
   z80_reset(0);
-  // init_cassette_in();
+  init_cassette_in();
   init_io();
-  Serial.println("Done");
 }
 
 void loop() {

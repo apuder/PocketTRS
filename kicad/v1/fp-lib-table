@@ -1,4 +1,0 @@
-(fp_lib_table
-  (lib (name PocketTRS_Connectors.pretty)(type KiCad)(uri ${KIPRJMOD}/PocketTRS_Connectors.pretty)(options "")(descr ""))
-  (lib (name esp32-wrover.pretty)(type KiCad)(uri ${KIPRJMOD}/esp32-wrover.pretty)(options "")(descr ""))
-)
