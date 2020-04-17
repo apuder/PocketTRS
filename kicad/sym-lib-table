@@ -1,4 +1,0 @@
-(sym_lib_table
-  (lib (name HiLetgoESP32s)(type Legacy)(uri ${KIPRJMOD}/HiLetgoESP32s.lib)(options "")(descr ""))
-  (lib (name TRSIO)(type Legacy)(uri ${KIPRJMOD}/TRSIO.lib)(options "")(descr ""))
-)
