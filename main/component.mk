@@ -1,0 +1,3 @@
+
+COMPONENT_SRCDIRS=. codegen
+COMPONENT_ADD_INCLUDEDIRS=. codegen font rom

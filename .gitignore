@@ -3,3 +3,4 @@
 .gcc-flags.json
 .travis.yml
 .vscode
+*~

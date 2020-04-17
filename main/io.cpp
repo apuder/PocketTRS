@@ -44,11 +44,12 @@ void z80_out(uint8_t address, uint8_t data, tstate_t z80_state_t_count)
     case 0xEE:
     case 0xEF:
       modeimage = data;
+      trs_cassette_motor((modeimage & 0x02) >> 1, z80_state_t_count);
       return;
     case 0xff:
+      trs_cassette_out(data & 3, z80_state_t_count);
       transition_out(data, z80_state_t_count);
-      break;
-
+      return;
   }
   #if 0
   if (address == 31) {

@@ -413,7 +413,7 @@ bool SoundGenerator::suspendPlay(bool value)
       if (m_waveGenTaskHandle)
         vTaskResume(m_waveGenTaskHandle);
       else
-        xTaskCreate(waveGenTask, "", WAVEGENTASK_STACK_SIZE, this, 5, &m_waveGenTaskHandle);
+	xTaskCreate(waveGenTask, "", WAVEGENTASK_STACK_SIZE, this, 5, &m_waveGenTaskHandle);
     }
   } else {
     // stop

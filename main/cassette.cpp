@@ -8,6 +8,7 @@
 #include <stdlib.h>
 #include <Arduino.h>
 #include <driver/adc.h>
+#include <driver/i2s.h>
 #include <soc/sens_reg.h>
 #include <soc/sens_struct.h>
 #include "soc/rtc_wdt.h"
@@ -22,7 +23,11 @@ typedef uint8_t Uchar;
 
 #define FALSE 0
 
-#define DEFAULT_SAMPLE_RATE 1000
+#define I2S_SAMPLING_FREQ 16000
+#define RING_BUFFER_SIZE 12000
+#define DEFAULT_SAMPLE_RATE 16000
+#define SAMPLE_BUFFER_SIZE 512
+#define DMA_BUFFER_SIZE 512
 
 #define CLOSE   0
 #define READ    1
@@ -38,7 +43,10 @@ typedef uint8_t Uchar;
 #define DEBUG_FORMAT       5  /* like cpt but in ASCII */
 static char *format_name[] = {
   NULL, "cas", "cpt", "wav", "direct", "debug" };
+//#define NOISE_FLOOR 1024
+//#define SIGNAL_CENTER 2048
 #define NOISE_FLOOR 64
+#define SIGNAL_CENTER 127
 
 #define DEFAULT_FORMAT    CAS_FORMAT
 
@@ -47,7 +55,7 @@ static char *format_name[] = {
 static int cassette_position = 0;
 static unsigned int cassette_format = DEFAULT_FORMAT;
 static int cassette_state = CLOSE;
-static int cassette_motor = 0;
+static int cassette_motor = 1; // XXX
 static float cassette_avg;
 static float cassette_env;
 static int cassette_noisefloor;
@@ -175,24 +183,26 @@ static long wave_datasize_offset = WAVE_DATASIZE_OFFSET;
 static long wave_data_offset = WAVE_DATA_OFFSET;
 
 
-#define RING_BUFFER_SIZE 4000
-
 static portMUX_TYPE DRAM_ATTR mux = portMUX_INITIALIZER_UNLOCKED;
 
-static hw_timer_t* adcTimer = NULL;
+static volatile uint8_t ring_buffer[RING_BUFFER_SIZE];
+static volatile uint8_t *ring_buffer_read_ptr = ring_buffer;
+static volatile uint8_t *ring_buffer_write_ptr = ring_buffer;
+static volatile uint8_t *ring_buffer_end = ring_buffer + RING_BUFFER_SIZE;
 
-static uint8_t ring_buffer[RING_BUFFER_SIZE];
-static uint8_t *ring_buffer_read_ptr = ring_buffer;
-static uint8_t *ring_buffer_write_ptr = ring_buffer;
-static uint8_t *ring_buffer_end = ring_buffer + RING_BUFFER_SIZE;
-
-void IRAM_ATTR putSample(uint8_t sample) {
+static void putSample(uint8_t sample) {
   portENTER_CRITICAL_ISR(&mux);
   *ring_buffer_write_ptr++ = sample;
   if (ring_buffer_write_ptr >= ring_buffer_end) {
     ring_buffer_write_ptr = ring_buffer;
   }
   if (ring_buffer_write_ptr == ring_buffer_read_ptr) {
+    static int i = 0;
+    i++;
+    if (i == 1000) {
+      //printf("#########\n");
+      i = 0;
+    }
     ring_buffer_read_ptr++;
     if (ring_buffer_read_ptr >= ring_buffer_end) {
       ring_buffer_read_ptr = ring_buffer;
@@ -201,40 +211,125 @@ void IRAM_ATTR putSample(uint8_t sample) {
   portEXIT_CRITICAL_ISR(&mux);
 }
 
-uint8_t getSample() {
+static uint8_t getSample() {
   uint8_t sample = 0;
   portENTER_CRITICAL(&mux);
+#if 1
+  if (ring_buffer_read_ptr == ring_buffer_write_ptr) {
+    portEXIT_CRITICAL(&mux);
+    vTaskDelay(35 / portTICK_RATE_MS);
+    portENTER_CRITICAL(&mux);
+  }
+#endif
   if (ring_buffer_read_ptr != ring_buffer_write_ptr) {
     sample = *ring_buffer_read_ptr++;
     if (ring_buffer_read_ptr >= ring_buffer_end) {
       ring_buffer_read_ptr = ring_buffer;
     }
+  } else {
+    printf("----\n");
   }
   portEXIT_CRITICAL(&mux);
   return sample;
 }
 
-int IRAM_ATTR local_adc1_read(int channel) {
-    uint16_t adc_value;
-    SENS.sar_meas_start1.sar1_en_pad = (1 << channel); // only one channel is selected
-    while (SENS.sar_slave_addr1.meas_status != 0);
-    SENS.sar_meas_start1.meas1_start_sar = 0;
-    SENS.sar_meas_start1.meas1_start_sar = 1;
-    while (SENS.sar_meas_start1.meas1_done_sar == 0);
-    adc_value = SENS.sar_meas_start1.meas1_data_sar;
-    return adc_value;
-}
-
-void IRAM_ATTR handleInterrupt() {
-  int sample = adc1_get_raw(ADC1_CHANNEL_0);//local_adc1_read(ADC1_CHANNEL_0);
-  if (sample < 1200) {
-    putSample(2);
-  } else if (sample > 2400) {
-    putSample(1);
-  } else {
-    putSample(0);
+static void i2sReadTask(void* param)
+{
+  static uint16_t buf[1024];
+  static float center = SIGNAL_CENTER;
+  static int center_cnt = 0;
+#if 0
+  int64_t now = esp_timer_get_time();
+  size_t r, total;
+  total = 0;
+  for (int x = 0; x < 1000; x++) {
+    esp_err_t ret = i2s_read(I2S_NUM_0, (void*) buf, sizeof(buf), &r, portMAX_DELAY);
+    ESP_ERROR_CHECK(ret);
+    total += r;
+  }
+  printf("I2S reading (%u): %lld\n", total, esp_timer_get_time() - now);
+#endif
+  
+  while (true) {
+    size_t br;
+    esp_err_t ret = i2s_read(I2S_NUM_0, (void*) buf, sizeof(buf), &br, portMAX_DELAY);
+    ESP_ERROR_CHECK(ret);
+    //printf("Writing %d samples\n", br  /2);
+    //portENTER_CRITICAL_ISR(&mux);
+    for(int i = 0; i < br / 2; i++) {
+      uint16_t sample = buf[i];
+      sample >>= 4;
+#if 1
+      if (center_cnt < DEFAULT_SAMPLE_RATE) {
+	center = (center * 99 + sample) / 100.0;
+	center_cnt++;
+	if (center_cnt == DEFAULT_SAMPLE_RATE) {
+	  printf("Signal center: %f\n", center);
+	}
+      }
+#else
+      center = SIGNAL_CENTER;
+#endif
+      if (sample < (center - cassette_noisefloor)) {
+	putSample(1);
+	//printf(".........\n");
+      } else if (sample > (center + cassette_noisefloor)) {
+	putSample(2);
+	//printf("--------------------------\n");
+      } else {
+	putSample(0);
+      }
+      if (cassette_speed == SPEED_1500) {
+	cassette_noisefloor = 2;
+      } else {
+	/* Attempt to learn the correct noise cutoff adaptively.
+	 * This code is just a hack; it would be nice to know a
+	 * real signal-processing algorithm for this application
+	 */
+	//	int cabs = abs(sample - (4096 / 2));
+	int cabs = abs(sample - center);
+#if CASSDEBUG2
+	debug("%f %f %d %d -> %d\n", cassette_avg, cassette_env,
+	       cassette_noisefloor, cabs, next);
+#endif
+	if (cabs > 1) {
+	  cassette_avg = (99*cassette_avg + cabs) / 100;
+	}
+	if (cabs > cassette_env) {
+	  cassette_env = (cassette_env + 9*cabs) / 10;
+	} else if (cabs > 10) {
+	  cassette_env = (99*cassette_env + cabs) / 100;
+	}
+	cassette_noisefloor = (cassette_avg + cassette_env) / 2;
+      }
+    }
+    //portEXIT_CRITICAL(&mux);
   }
 }
+
+
+uint8_t getSamplex() {
+  static uint16_t ring_buffer[RING_BUFFER_SIZE];
+  static int current_idx = 0;
+  static size_t last_idx = 0;
+
+  if (current_idx == last_idx) {
+    esp_err_t ret = i2s_read(I2S_NUM_0, (void*) ring_buffer, RING_BUFFER_SIZE * sizeof(uint16_t), &last_idx, portMAX_DELAY);
+    ESP_ERROR_CHECK(ret);
+    printf("%d\n", last_idx);
+    last_idx >>= 1;
+    current_idx = 0;
+  }
+  uint16_t sample = ring_buffer[current_idx++];
+  if (sample < 1500) {
+    return 1;
+  } else if (sample > 2800) {
+    return 2;
+  } else {
+    return 0;
+  }
+}
+
 
 /* Return value: 1 = already that state; 0 = state changed; -1 = failed */
 int assert_state(int state)
@@ -253,7 +348,8 @@ int assert_state(int state)
 static int
 transition_in()
 {
-  unsigned long delta_us, nsamples, maxsamples;
+  unsigned long delta_us, nsamples;
+  long maxsamples;
   Ushort code;
   Uint d;
   int next, ret = 0;
@@ -265,13 +361,6 @@ transition_in()
   do {
     int direct = (cassette_format == DIRECT_FORMAT);
     next = getSample();
-  #if 0
-    if (direct && cassette_stereo) {
-      /* Discard right channel */
-      (void) get_sample(direct, cassette_file);
-    }
-  #endif
-    //if (c == EOF) goto fail;
   #if 0
     if (c > 127 + cassette_noisefloor) {
       next = 1;
@@ -320,11 +409,58 @@ transition_in()
         nsamples, cassette_value, cassette_delta, cassette_next);
 #endif
   ret = 1;
-fail:
+//fail:
   if (ret == 0) {
     cassette_delta = (unsigned long) -1;
   }
   return ret;
+}
+
+/* Z80 program is turning motor on or off */
+void trs_cassette_motor(int value, tstate_t z80_state_t_count)
+{
+  if (value) {
+    /* motor on */
+    if (!cassette_motor) {
+#if CASSDEBUG3
+      debug("motor on %ld\n", z80_state_t_count);
+#endif
+      cassette_motor = 1;
+      cassette_transition = z80_state_t_count;
+      cassette_value = 0;
+      cassette_next = 0;
+      cassette_delta = 0;
+      cassette_flipflop = 0;
+      cassette_byte = 0;
+      cassette_bitnumber = 0;
+      cassette_pulsestate = 0;
+      cassette_speed = SPEED_500;
+      cassette_roundoff_error = 0.0;
+      cassette_avg = NOISE_FLOOR;
+      cassette_env = SIGNAL_CENTER;
+      cassette_noisefloor = NOISE_FLOOR;
+      cassette_firstoutread = 0;
+      cassette_transitionsout = 0;
+#if 0
+      if (trs_model > 1) {
+	/* Get 1500bps reading started after 1 second */
+	trs_schedule_event(trs_cassette_kickoff, 0,
+			   (tstate_t) (1000000 * z80_state.clockMHz));
+      }
+#endif
+    }
+  } else {
+    /* motor off */
+    if (cassette_motor) {
+#if 0
+      if (cassette_state == WRITE) {
+        transition_out(FLUSH);
+      }
+#endif
+      assert_state(CLOSE);
+      cassette_motor = 0;
+    }
+  }
 }
 
 void
@@ -332,8 +468,9 @@ trs_cassette_update(tstate_t z80_state_t_count)
 {
   if (cassette_motor && cassette_state != WRITE && assert_state(READ) >= 0) {
     int newtrans = 0;
+    //printf(".................\n");
     while ((z80_state_t_count - cassette_transition) >= cassette_delta) {
-
+      //printf("@@@@@@@@@@ %llu, %llu, %lu\n", z80_state_t_count, cassette_transition, cassette_delta);
       /* Simulate analog signal processing on the 500-bps cassette input */
       if (cassette_next != 0 && cassette_value == 0) {
         cassette_flipflop = 0x80;
@@ -350,8 +487,8 @@ trs_cassette_update(tstate_t z80_state_t_count)
       /* Read the next transition */
       newtrans = transition_in();
 
-      /* Allow reset button */
 #if 0
+      /* Allow reset button */
       trs_get_event(0);
       if (z80_state.nmi) return;
 #endif
@@ -377,6 +514,39 @@ trs_cassette_update(tstate_t z80_state_t_count)
   }
 }
 
+void trs_cassette_out(int value, tstate_t z80_state_t_count)
+{
+#if CASSDEBUG3
+  debug("out %ld %d %d %d\n", z80_state.t_count, value, cassette_motor, cassette_state);
+#endif
+  if (cassette_motor) {
+    if (cassette_state == READ) {
+      trs_cassette_update(z80_state_t_count);
+      cassette_flipflop = 0;
+      if (cassette_firstoutread == 0) {
+	cassette_firstoutread = z80_state_t_count;
+      }
+    }
+#if 0
+    if (cassette_state != READ && value != cassette_value) {
+      if (assert_state(WRITE) < 0) return;
+      transition_out(value);
+    }
+#endif
+  }
+
+#if 0
+  /* Do sound emulation by sending samples to /dev/dsp */
+  if (trs_sound && cassette_motor == 0) {
+    if (cassette_state != SOUND && value == 0) return;
+    if (assert_state(SOUND) < 0) return;
+#ifdef SUSPEND_DELAY
+    trs_suspend_delay();
+#endif
+    transition_out(value);
+  }
+#endif
+}
 
 int
 trs_cassette_in(tstate_t z80_state_t_count)
@@ -405,7 +575,7 @@ trs_cassette_in(tstate_t z80_state_t_count)
     cassette_firstoutread = 1;             /* disable detector */
   }
   //trs_cassette_clear_interrupts();
-  trs_cassette_update(0);
+  trs_cassette_update(z80_state_t_count);
 #if 0
   if (trs_model == 1) {
     return cassette_flipflop;
@@ -423,55 +593,77 @@ trs_cassette_reset()
   assert_state(CLOSE);
 }
 
-static void cassette_task(void* param)
-{
-#if 1
-
-#if 1
-  adcTimer = timerBegin(0, 80, true);
-  timerAttachInterrupt(adcTimer, handleInterrupt, true);
-  timerAlarmWrite(adcTimer, 1000000 / DEFAULT_SAMPLE_RATE, true);
-  timerAlarmEnable(adcTimer);
-#endif
-
-#else
-  while(1) {
-    unsigned long ts = micros() + (1000000 / DEFAULT_SAMPLE_RATE);
-    handleInterrupt();
-    rtc_wdt_feed();
-    unsigned long sleepTime = ts - micros();
-    //Serial.println(sleepTime);
-    delayMicroseconds(sleepTime);
-  }
-#endif
-  vTaskDelete(NULL);
-}
-
 void init_cassette_in()
 {
-  adc1_config_width(ADC_WIDTH_BIT_12);
-  adc1_config_channel_atten(ADC1_CHANNEL_0, ADC_ATTEN_DB_11);
 #if 1
+  esp_err_t ret;
+  i2s_config_t i2s_config = {
+    .mode = (i2s_mode_t) (I2S_MODE_MASTER | I2S_MODE_RX | I2S_MODE_ADC_BUILT_IN),
+    .sample_rate          = I2S_SAMPLING_FREQ,
+    .bits_per_sample      = I2S_BITS_PER_SAMPLE_16BIT,
+    .channel_format       = I2S_CHANNEL_FMT_ONLY_RIGHT,
+    .communication_format = I2S_COMM_FORMAT_I2S_MSB,
+    .intr_alloc_flags     = 0,
+    .dma_buf_count        = 2,
+    .dma_buf_len          = DMA_BUFFER_SIZE * sizeof(uint16_t),
+    .use_apll             = false,
+    .tx_desc_auto_clear   = 0,
+    .fixed_mclk           = 0
+  };
+#else
+  i2s_config_t i2s_config;
+  esp_err_t ret;
+
+  i2s_config.mode = (i2s_mode_t) (I2S_MODE_MASTER | I2S_MODE_RX | I2S_MODE_ADC_BUILT_IN);
+  i2s_config.sample_rate          = I2S_SAMPLING_FREQ;
+  i2s_config.bits_per_sample      = I2S_BITS_PER_SAMPLE_16BIT;
+  i2s_config.communication_format = I2S_COMM_FORMAT_I2S_MSB;
+  i2s_config.channel_format       = I2S_CHANNEL_FMT_ONLY_RIGHT;
+  i2s_config.intr_alloc_flags     = 0;
+  i2s_config.dma_buf_count        = 2;
+  i2s_config.dma_buf_len          = DMA_BUFFER_SIZE * sizeof(uint16_t);
+  i2s_config.use_apll             = false;
+  i2s_config.tx_desc_auto_clear   = 0;
+#endif
+  
+  ret = i2s_driver_install(I2S_NUM_0, &i2s_config, 0, NULL);
+  ESP_ERROR_CHECK(ret);
+  //  ret = i2s_set_pin(I2S_NUM_0, NULL);
+  //ESP_ERROR_CHECK(ret);
+  ret = i2s_set_adc_mode(ADC_UNIT_1, ADC1_CHANNEL_0);
+  ESP_ERROR_CHECK(ret);
+  ret = i2s_start(I2S_NUM_0);
+  ESP_ERROR_CHECK(ret);
+
+  //adc1_config_width(ADC_WIDTH_BIT_12);
+  //adc1_config_channel_atten(ADC1_CHANNEL_0, ADC_ATTEN_DB_11);
+
+  ret = i2s_adc_enable(I2S_NUM_0);
+  ESP_ERROR_CHECK(ret);
 
 #if 1
-  rtc_wdt_protect_off();
-  rtc_wdt_disable();
-  xTaskCreatePinnedToCore(cassette_task, "cass", 1024, NULL,
-                          tskIDLE_PRIORITY, NULL, 0);
+  xTaskCreatePinnedToCore(i2sReadTask, "cass", 2048, NULL,
+                          tskIDLE_PRIORITY + 3, NULL, 0);
+
 #else
-  adcTimer = timerBegin(0, 80, true);
-  timerAttachInterrupt(adcTimer, handleInterrupt, true);
-  timerAlarmWrite(adcTimer, 1000000 / DEFAULT_SAMPLE_RATE, true);
-  timerAlarmEnable(adcTimer);
+  uint16_t* i2s_read_buff = (uint16_t*) calloc(SAMPLE_BUFFER_SIZE, sizeof(uint16_t));
+  assert(i2s_read_buff != NULL);
+  size_t bytes_read;
+  while (true) {
+    //read data from I2S bus, in this case, from ADC.
+    ret = i2s_read(I2S_NUM_0, (void*) i2s_read_buff, SAMPLE_BUFFER_SIZE * sizeof(uint16_t), &bytes_read, portMAX_DELAY);
+    ESP_ERROR_CHECK(ret);
+#if 1
+    printf("%d\n", i2s_read_buff[0]);
+#else
+    for (int i = 0; i < bytes_read / 2; i++) {
+      printf("%5d ", i2s_read_buff[i]);
+      if (i % 8 == 0) printf("\n");
+    }
 #endif
-#else
-  int min = 1024;
-  int max = 0;
-  int avg = 0;
-  while (1) {
-    int val = adc1_get_raw(ADC1_CHANNEL_0);
-    printf("%5d\n", val);
-    delay(10);
   }
+  i2s_adc_disable(I2S_NUM_0);
+  free(i2s_read_buff);
+  i2s_read_buff = NULL;
 #endif
 }
