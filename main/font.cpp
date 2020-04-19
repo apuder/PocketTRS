@@ -15,42 +15,108 @@
 #include "font/font-data-single"
 #include "font/font-data-double"
 
-static int currentmode = NORMAL;
 
-static void trs_screen_refresh()
+ScreenBuffer::ScreenBuffer(byte*   screenBuffer,
+			   uint8_t width,
+			   uint8_t height)
 {
-  for (int pos = 0; pos < 64 * 16; pos++) {
-    ushort address = 0x3c00 + pos;
-    draw_trs_char(address, peek_mem(address));
+  this->screenBuffer = screenBuffer;
+  this->ownBuffer = false;
+  this->width = width;
+  this->height = height;
+  this->currentMode = NORMAL;
+  this->next = nullptr;
+}
+
+ScreenBuffer::ScreenBuffer(uint8_t width, uint8_t height)
+{
+  this->screenBuffer = (byte*) malloc(width * height);
+  this->ownBuffer = true;
+  this->width = width;
+  this->height = height;
+  this->currentMode = NORMAL;
+  this->next = nullptr;
+}
+
+ScreenBuffer::~ScreenBuffer()
+{
+  if (ownBuffer) {
+    free(screenBuffer);
   }
 }
 
-void trs_screen_expanded(int flag)
+void ScreenBuffer::setNext(ScreenBuffer* next)
+{
+  this->next = next;
+}
+
+void ScreenBuffer::refresh()
+{
+  for (int pos = 0; pos < width * height; pos++) {
+    drawChar(pos, screenBuffer[pos]);
+  }
+}
+
+void ScreenBuffer::setExpanded(int flag)
 {
   int bit = flag ? EXPANDED : 0;
-  if ((currentmode ^ bit) & EXPANDED) {
-    currentmode ^= EXPANDED;
-    Canvas.setGlyphOptions(GlyphOptions().DoubleWidth(((currentmode & EXPANDED) == 0) ? 0 : 1));
-    trs_screen_refresh();
+  if ((currentMode ^ bit) & EXPANDED) {
+    currentMode ^= EXPANDED;
+    Canvas.setGlyphOptions(GlyphOptions().DoubleWidth(((currentMode & EXPANDED) == 0) ? 0 : 1));
+    refresh();
   }
 }
 
-static inline int is_expanded_mode()
+int ScreenBuffer::isExpandedMode()
 {
-  return currentmode & EXPANDED;
+  return currentMode & EXPANDED;
 }
 
-void draw_trs_char(ushort address, byte character)
+void ScreenBuffer::drawChar(ushort pos, byte character)
 {
-  if (is_expanded_mode() && (address & 1) != 0) {
+  if (isExpandedMode() && (pos & 1) != 0) {
     return;
   }
-  int d = is_expanded_mode() ? 2 : 1;
-  address -= 0x3c00;
-  int pos_x = (address % 64) * TRS_CHAR_WIDTH * d;
-  int pos_y = (address / 64) * TRS_CHAR_HEIGHT;
+  int d = isExpandedMode() ? 2 : 1;
+  int pos_x = (pos % width) * TRS_CHAR_WIDTH * d;
+  int pos_y = (pos / width) * TRS_CHAR_HEIGHT;
 //  Canvas.drawGlyph(pos_x, pos_y, TRS_CHAR_WIDTH * d, TRS_CHAR_HEIGHT,
 //    is_expanded_mode() ? font_double : font_single, character);
   Canvas.drawGlyph(pos_x, pos_y, TRS_CHAR_WIDTH * d, TRS_CHAR_HEIGHT,
-    is_expanded_mode() ? font_double : font_single, character);
+		   isExpandedMode() ? font_double : font_single, character);
 }
+
+
+  
+
+Screen::Screen()
+{
+  top = nullptr;
+}
+
+void Screen::push(ScreenBuffer* screenBuffer)
+{
+  screenBuffer->setNext(top);
+  top = screenBuffer;
+}
+
+void Screen::pop()
+{
+  ScreenBuffer* tmp = top;
+  top = top->getNext();
+  delete tmp;
+}
+
+void Screen::setExpanded(int flag)
+{
+  assert(top != nullptr);
+  top->setExpanded(flag);
+}
+
+void Screen::drawChar(ushort pos, byte character)
+{
+  assert(top != nullptr);
+  top->drawChar(pos, character);
+}
+
+Screen screen;

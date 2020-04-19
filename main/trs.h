@@ -15,4 +15,6 @@ uint8_t peek_mem(uint16_t address);
 void z80_reset(uint16_t entryAddr);
 void z80_run();
 
+void init_trs();
+
 #endif

@@ -17,7 +17,7 @@
 
 static Z80Context z80ctx;
 
-static volatile byte ram[64 * 1024 - model3_frehd_rom_len];
+static byte ram[64 * 1024 - model3_frehd_rom_len];
 
 void poke_mem(uint16_t address, uint8_t data)
 {
@@ -28,7 +28,7 @@ void poke_mem(uint16_t address, uint8_t data)
   ram[address - model3_frehd_rom_len] = data;
   if ((address >= 0x3c00) && (address < (0x3c00 + 64 * 16))) {
     // Video RAM access
-    draw_trs_char(address, data);
+    screen.drawChar(address - 0x3c00, data);
   }
 }
 
@@ -97,7 +97,7 @@ static void z80_io_write(int param, ushort address, byte data)
   switch (address) {
   case 0xef:
     /* screen mode select is on D2 */
-    trs_screen_expanded((data & 0x04) >> 2);
+    screen.setExpanded((data & 0x04) >> 2);
     break;
   case 31:
   case 0xc0:
@@ -188,4 +188,11 @@ void z80_run()
     z80ctx.tstates -=  CYCLES_PER_TIMER;
     z80ctx.int_req = 1;
   }
+}
+
+void init_trs()
+{
+  ScreenBuffer* screenBuffer =
+    new ScreenBuffer(&ram[0x3c00 - model3_frehd_rom_len], 64, 16);
+  screen.push(screenBuffer);
 }
