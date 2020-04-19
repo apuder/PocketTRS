@@ -1,6 +1,6 @@
 
-#ifndef __FONT_H__
-#define __FONT_H__
+#ifndef __SCREEN_H__
+#define __SCREEN_H__
 
 #include "z80.h"
 #include <stdint.h>

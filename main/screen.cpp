@@ -1,7 +1,7 @@
 
 
 #include "trs.h"
-#include "font.h"
+#include "screen.h"
 #include "fabgl.h"
 
 #define NORMAL 0
