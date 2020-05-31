@@ -1,7 +1,7 @@
 
 
 #include "trs.h"
-#include "screen.h"
+#include "trs_screen.h"
 #include "fabgl.h"
 
 #define NORMAL 0
@@ -31,6 +31,7 @@ ScreenBuffer::ScreenBuffer(byte*   screenBuffer,
 ScreenBuffer::ScreenBuffer(uint8_t width, uint8_t height)
 {
   this->screenBuffer = (byte*) malloc(width * height);
+  assert(screenBuffer != NULL);
   this->ownBuffer = true;
   this->width = width;
   this->height = height;
@@ -45,15 +46,42 @@ ScreenBuffer::~ScreenBuffer()
   }
 }
 
+uint8_t* ScreenBuffer::getBuffer()
+{
+  return screenBuffer;
+}
+
 void ScreenBuffer::setNext(ScreenBuffer* next)
 {
   this->next = next;
+}
+
+ScreenBuffer* ScreenBuffer::getNext()
+{
+  return next;
+}
+
+void ScreenBuffer::copyBufferFrom(ScreenBuffer* buf)
+{
+  assert(next != nullptr && width == buf->width && height == buf->height);
+  memcpy(screenBuffer, buf->screenBuffer, width * height);
 }
 
 void ScreenBuffer::refresh()
 {
   for (int pos = 0; pos < width * height; pos++) {
     drawChar(pos, screenBuffer[pos]);
+  }
+}
+
+void ScreenBuffer::update(uint8_t* from, uint8_t* to)
+{
+  int pos = from - screenBuffer;
+  printf("update(): %d\n", pos);
+  while (from != to) {
+    drawChar(pos, *from);
+    pos++;
+    from++;
   }
 }
 
@@ -89,34 +117,34 @@ void ScreenBuffer::drawChar(ushort pos, byte character)
 
   
 
-Screen::Screen()
+TRSScreen::TRSScreen()
 {
   top = nullptr;
 }
 
-void Screen::push(ScreenBuffer* screenBuffer)
+void TRSScreen::push(ScreenBuffer* screenBuffer)
 {
   screenBuffer->setNext(top);
   top = screenBuffer;
 }
 
-void Screen::pop()
+void TRSScreen::pop()
 {
   ScreenBuffer* tmp = top;
   top = top->getNext();
   delete tmp;
 }
 
-void Screen::setExpanded(int flag)
+void TRSScreen::setExpanded(int flag)
 {
   assert(top != nullptr);
   top->setExpanded(flag);
 }
 
-void Screen::drawChar(ushort pos, byte character)
+void TRSScreen::drawChar(ushort pos, byte character)
 {
   assert(top != nullptr);
   top->drawChar(pos, character);
 }
 
-Screen screen;
+TRSScreen trs_screen;

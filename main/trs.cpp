@@ -1,6 +1,6 @@
 
 #include "z80.h"
-#include "screen.h"
+#include "trs_screen.h"
 #include "trs.h"
 #include "sound.h"
 #include "io.h"
@@ -28,7 +28,7 @@ void poke_mem(uint16_t address, uint8_t data)
   ram[address - model3_frehd_rom_len] = data;
   if ((address >= 0x3c00) && (address < (0x3c00 + 64 * 16))) {
     // Video RAM access
-    screen.drawChar(address - 0x3c00, data);
+    trs_screen.drawChar(address - 0x3c00, data);
   }
 }
 
@@ -97,7 +97,7 @@ static void z80_io_write(int param, ushort address, byte data)
   switch (address) {
   case 0xef:
     /* screen mode select is on D2 */
-    screen.setExpanded((data & 0x04) >> 2);
+    trs_screen.setExpanded((data & 0x04) >> 2);
     break;
   case 31:
   case 0xc0:
@@ -194,5 +194,5 @@ void init_trs()
 {
   ScreenBuffer* screenBuffer =
     new ScreenBuffer(&ram[0x3c00 - model3_frehd_rom_len], 64, 16);
-  screen.push(screenBuffer);
+  trs_screen.push(screenBuffer);
 }

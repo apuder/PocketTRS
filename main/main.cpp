@@ -5,6 +5,7 @@
 #include "sound.h"
 #include "cassette.h"
 #include "io.h"
+#include "ui.h"
 #include "config.h"
 
 void setup() {
@@ -40,9 +41,10 @@ void loop() {
   if (Keyboard.virtualKeyAvailable()) {
     bool down;
     auto vk = Keyboard.getNextVirtualKey(&down);
-    //if (vk != lastvk) {
+    if (down && vk == fabgl::VK_F3) {
+      configure_pocket_trs();
+    } else {
       process_key(vk, down);
-    //  lastvk = down ? vk : fabgl::VK_NONE;
-    //}
+    }
   }
 }
