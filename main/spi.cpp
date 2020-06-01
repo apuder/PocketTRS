@@ -17,6 +17,9 @@ spi_device_handle_t spi_mcp23S17_h;
 static spi_device_interface_config_t spi_mcp23S08;
 spi_device_handle_t spi_mcp23S08_h;
 
+static spi_device_interface_config_t spi_mcp4251_1;
+spi_device_handle_t spi_mcp4251_1_h;
+
 static xQueueHandle gpio_evt_queue = NULL;
 
 static void IRAM_ATTR gpio_isr_handler(void* arg)
@@ -58,7 +61,7 @@ uint8_t readMCP(spi_device_handle_t dev, uint8_t reg)
 }
 
 #if 1
-void wire_test()
+void wire_test_port_expander()
 {
 #if 0
   while (1) {
@@ -101,6 +104,27 @@ void wire_test()
   }
 #endif
 #endif
+}
+
+static void wire_test_digital_pot()
+{
+  uint8_t step = 0;
+
+  while (1) {
+    spi_transaction_t trans;
+
+    memset(&trans, 0, sizeof(spi_transaction_t));
+    trans.flags = SPI_TRANS_USE_TXDATA;
+    trans.length = 2 * 8;   		// 2 bytes
+    trans.tx_data[0] = 0;
+    trans.tx_data[1] = step;
+
+    printf("Step: %d\n", step);
+    esp_err_t ret = spi_device_transmit(spi_mcp4251_1_h, &trans);
+    ESP_ERROR_CHECK(ret);
+    delay(500);
+    step++;
+  }
 }
 #endif
 
@@ -188,8 +212,26 @@ void init_spi()
   gpio_evt_queue = xQueueCreate(10, 0);
 #endif
 
-  //wire_test();
-
+  // Configure SPI device for MCP4251-1
+  spi_mcp4251_1.address_bits = 0;
+  spi_mcp4251_1.command_bits = 0;
+  spi_mcp4251_1.dummy_bits = 0;
+  spi_mcp4251_1.mode = 0;
+  spi_mcp4251_1.duty_cycle_pos = 0;
+  spi_mcp4251_1.cs_ena_posttrans = 0;
+  spi_mcp4251_1.cs_ena_pretrans = 0;
+  spi_mcp4251_1.clock_speed_hz = 1 * 1000 * 1000;
+  spi_mcp4251_1.spics_io_num = SPI_PIN_NUM_CS_MCP4251_1;
+  spi_mcp4251_1.flags = 0;
+  spi_mcp4251_1.queue_size = 1;
+  spi_mcp4251_1.pre_cb = NULL;
+  spi_mcp4251_1.post_cb = NULL;
+  ret = spi_bus_add_device(HSPI_HOST, &spi_mcp4251_1, &spi_mcp4251_1_h);
+  ESP_ERROR_CHECK(ret);
+  
+  //wire_test_port_expander();
+  //wire_test_digital_pot();
+  
   /*
    * MCP23S17 configuration
    */
