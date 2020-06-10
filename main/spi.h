@@ -65,8 +65,9 @@ extern spi_device_handle_t spi_mcp23S08_h;
 #define ACK_VAL 0x0
 #define NACK_VAL 0x1
 
-void writeMCP(spi_device_handle_t dev, uint8_t cmd, uint8_t data);
-uint8_t readMCP(spi_device_handle_t dev, uint8_t reg);
+void writePortExpander(spi_device_handle_t dev, uint8_t cmd, uint8_t data);
+uint8_t readPortExpander(spi_device_handle_t dev, uint8_t reg);
+void writeDigiPot(uint8_t pot, uint8_t step);
 
 void init_spi();
 
