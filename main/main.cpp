@@ -6,6 +6,7 @@
 #include "cassette.h"
 #include "io.h"
 #include "ui.h"
+#include "settings.h"
 #include "config.h"
 
 void setup() {
@@ -32,6 +33,7 @@ void setup() {
   z80_reset(0);
   init_cassette_in();
   init_io();
+  init_settings();
 }
 
 void loop() {

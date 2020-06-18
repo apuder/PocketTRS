@@ -253,12 +253,7 @@ void init_spi()
   spi_mcp4351.post_cb = NULL;
   ret = spi_bus_add_device(HSPI_HOST, &spi_mcp4351, &spi_mcp4351_h);
   ESP_ERROR_CHECK(ret);
-  
-  // Init digi pots
-  writeDigiPot(0, 54);
-  writeDigiPot(1, 54);
-  writeDigiPot(2, 54);
-  
+
   //wire_test_port_expander();
   //wire_test_digital_pot();
   

@@ -1,10 +1,11 @@
 
+#include "settings.h"
 #include "ui.h"
 #include "trs-lib.h"
 
 static const char* items[] = {
-  "GREEN",
   "WHITE",
+  "GREEN",
   "AMBER",
   NULL};
 
@@ -49,5 +50,7 @@ static form_item_t configuration_form[] = {
 
 void configure()
 {
+  screen_color = get_screen_color();
   form("Configuration", configuration_form, false);
+  set_screen_color(screen_color);
 }
