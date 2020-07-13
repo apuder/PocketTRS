@@ -194,7 +194,7 @@ void init_spi()
   spi_mcp23S17.duty_cycle_pos = 0;
   spi_mcp23S17.cs_ena_posttrans = 0;
   spi_mcp23S17.cs_ena_pretrans = 0;
-  spi_mcp23S17.clock_speed_hz = SPI_SPEED_MHZ * 1000 * 1000;
+  spi_mcp23S17.clock_speed_hz = SPI_PORT_EXP_SPEED_MHZ * 1000 * 1000;
   spi_mcp23S17.spics_io_num = SPI_PIN_NUM_CS_MCP23S17;
   spi_mcp23S17.flags = 0;
   spi_mcp23S17.queue_size = 1;
@@ -211,7 +211,7 @@ void init_spi()
   spi_mcp23S08.duty_cycle_pos = 0;
   spi_mcp23S08.cs_ena_posttrans = 0;
   spi_mcp23S08.cs_ena_pretrans = 0;
-  spi_mcp23S08.clock_speed_hz = SPI_SPEED_MHZ * 1000 * 1000;
+  spi_mcp23S08.clock_speed_hz = SPI_PORT_EXP_SPEED_MHZ * 1000 * 1000;
   spi_mcp23S08.spics_io_num = SPI_PIN_NUM_CS_MCP23S08;
   spi_mcp23S08.flags = 0;
   spi_mcp23S08.queue_size = 1;
@@ -245,7 +245,7 @@ void init_spi()
   spi_mcp4351.duty_cycle_pos = 0;
   spi_mcp4351.cs_ena_posttrans = 0;
   spi_mcp4351.cs_ena_pretrans = 0;
-  spi_mcp4351.clock_speed_hz = 1 * 1000 * 1000;
+  spi_mcp4351.clock_speed_hz = SPI_DIGI_POT_SPEED_MHZ * 1000 * 1000;
   spi_mcp4351.spics_io_num = SPI_PIN_NUM_CS_MCP4351;
   spi_mcp4351.flags = 0;
   spi_mcp4351.queue_size = 1;
@@ -260,14 +260,14 @@ void init_spi()
   /*
    * MCP23S17 configuration
    */
-  // Port B is connected to D0-D7. Configure as input. Disable pull-ups.
+  // Port A is connected to D0-D7. Configure as input. Disable pull-ups.
   // Disable interrupts
-  writePortExpander(MCP23S17, MCP23S17_IODIRB, 0xff);
-  writePortExpander(MCP23S17, MCP23S17_GPPUB, 0);
-  writePortExpander(MCP23S17, MCP23S17_GPINTENB, 0);
-  // Port A is connected to A0-A7. Configure as output. Set 0 as initial address
-  writePortExpander(MCP23S17, MCP23S17_IODIRA, 0);
-  writePortExpander(MCP23S17, MCP23S17_GPIOA, 0);
+  writePortExpander(MCP23S17, MCP23S17_IODIRA, 0xff);
+  writePortExpander(MCP23S17, MCP23S17_GPPUA, 0);
+  writePortExpander(MCP23S17, MCP23S17_GPINTENA, 0);
+  // Port B is connected to A0-A7. Configure as output. Set 0 as initial address
+  writePortExpander(MCP23S17, MCP23S17_IODIRB, 0);
+  writePortExpander(MCP23S17, MCP23S17_GPIOB, 0);
 
   /*
    * MCP23S08 configuration

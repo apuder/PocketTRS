@@ -12,25 +12,25 @@ static uint8_t modeimage = 8;
 static uint8_t port_0xec = 0xff;
 
 
-static void set_iodirb(uint8_t dir)
+static void set_iodira(uint8_t dir)
 {
   static uint8_t current_dir = 0xff;
 
   if (dir == current_dir) {
     return;
   }
-  writePortExpander(MCP23S17, MCP23S17_IODIRB, dir);
+  writePortExpander(MCP23S17, MCP23S17_IODIRA, dir);
   current_dir = dir;
 }
 
-static void set_gpioa(uint8_t address)
+static void set_gpiob(uint8_t address)
 {
   static uint8_t current_address = 0;
 
   if (address == current_address) {
     return;
   }
-  writePortExpander(MCP23S17, MCP23S17_GPIOA, address);
+  writePortExpander(MCP23S17, MCP23S17_GPIOB, address);
   current_address = address;
 }
 
@@ -51,22 +51,22 @@ void z80_out(uint8_t address, uint8_t data, tstate_t z80_state_t_count)
       transition_out(data, z80_state_t_count);
       return;
   }
-  #if 0
-  if (address == 31) {
+#if 1
+  if ((address & 0xc0) == 0xc0) {
     Serial.print("out(");
     Serial.print(address);
     Serial.print(",");
     Serial.print(data);
     Serial.println(")");
   }
-  #endif
+#endif
 #ifndef DISABLE_IO
-  // Configure port B as output
-  set_iodirb(0);
-  // Set the I/O address on port A
-  set_gpioa(address);
-  // Write the data to port B
-  writePortExpander(MCP23S17, MCP23S17_GPIOB, data);
+  // Configure port A as output
+  set_iodira(0);
+  // Set the I/O address on port B
+  set_gpiob(address);
+  // Write the data to port A
+  writePortExpander(MCP23S17, MCP23S17_GPIOA, data);
   // Assert IORQ_N and OUT_N
   writePortExpander(MCP23S08, MCP23S08_GPIO, ~(TRS_IORQ | TRS_OUT));
   // Busy wait while IOBUSWAIT_N is asserted
@@ -103,19 +103,19 @@ uint8_t z80_in(uint8_t address, tstate_t z80_state_t_count)
     // I/O disabled
     return 0xff;
   }
-  // Configure port B as input
-  set_iodirb(0xff);
-  // Set the I/O address on port A
-  set_gpioa(address);
+  // Configure port A as input
+  set_iodira(0xff);
+  // Set the I/O address on port B
+  set_gpiob(address);
   // Assert IORQ_N and IN_N
   writePortExpander(MCP23S08, MCP23S08_GPIO, ~(TRS_IORQ | TRS_IN));
   while (!(readPortExpander(MCP23S08, MCP23S08_GPIO) & TRS_IOBUSWAIT)) ;
   // Busy wait while IOBUSWAIT_N is asserted
-  uint8_t data = readPortExpander(MCP23S17, MCP23S17_GPIOB);
+  uint8_t data = readPortExpander(MCP23S17, MCP23S17_GPIOA);
   // Release IORQ_N and IN_N
   writePortExpander(MCP23S08, MCP23S08_GPIO, 0xff);
-  #if 0
-  if (address == 31) {
+  #if 1
+  if ((address & 0xc0) == 0xc0) {
     Serial.print("in(");
     Serial.print(address);
     Serial.print("): 0x");
