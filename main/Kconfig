@@ -1,0 +1,12 @@
+menu "PocketTRS"
+
+    config POCKET_TRS_USE_PS2_FIX
+        bool "Use PS/2 keyboard fix"
+        default n
+        help
+        The first version of the PCB had a bug where data and
+	clock lines where swapped for the PS/2 keyboard. This
+	setting allows support for the first prototype PCB.
+	By default, the PS/2 fix will not be used.
+
+endmenu

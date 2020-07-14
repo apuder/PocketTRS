@@ -15,7 +15,11 @@ void setup() {
   Serial.println(ESP.getPsramSize());
   Serial.print("Heap size before VGA init: ");
   Serial.println(ESP.getFreeHeap());
-  PS2Controller.begin(PS2Preset::KeyboardPort0);
+#ifdef CONFIG_POCKET_TRS_USE_PS2_FIX
+  Keyboard.begin(GPIO_NUM_32, GPIO_NUM_33, true, true);
+#else
+  Keyboard.begin(GPIO_NUM_33, GPIO_NUM_32, true, true);
+#endif
   VGAController.begin(VGA_RED, VGA_GREEN, VGA_BLUE, VGA_HSYNC, VGA_VSYNC);
   VGAController.setResolution(VGA_512x192_60Hz);
   VGAController.enableBackgroundPrimitiveExecution(false);
