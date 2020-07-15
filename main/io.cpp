@@ -3,8 +3,8 @@
 #include <Arduino.h>
 #include "driver/gpio.h"
 #include "cassette.h"
-#include "sound.h"
 #include "spi.h"
+#include "i2s.h"
 #include "config.h"
 
 
@@ -48,10 +48,10 @@ void z80_out(uint8_t address, uint8_t data, tstate_t z80_state_t_count)
       return;
     case 0xff:
       trs_cassette_out(data & 3, z80_state_t_count);
-      transition_out(data, z80_state_t_count);
+      //      transition_out(data, z80_state_t_count);
       return;
   }
-#if 1
+#if 0
   if ((address & 0xc0) == 0xc0) {
     Serial.print("out(");
     Serial.print(address);
@@ -108,20 +108,20 @@ uint8_t z80_in(uint8_t address, tstate_t z80_state_t_count)
   // Set the I/O address on port B
   set_gpiob(address);
   // Assert IORQ_N and IN_N
-  writePortExpander(MCP23S08, MCP23S08_GPIO, ~(TRS_IORQ | TRS_IN));
+  writePortExpander(MCP23S08, MCP23S08_GPIO, 0xff & ~(TRS_IORQ | TRS_IN));
   while (!(readPortExpander(MCP23S08, MCP23S08_GPIO) & TRS_IOBUSWAIT)) ;
   // Busy wait while IOBUSWAIT_N is asserted
   uint8_t data = readPortExpander(MCP23S17, MCP23S17_GPIOA);
   // Release IORQ_N and IN_N
   writePortExpander(MCP23S08, MCP23S08_GPIO, 0xff);
-  #if 1
+#if 0
   if ((address & 0xc0) == 0xc0) {
     Serial.print("in(");
     Serial.print(address);
     Serial.print("): 0x");
     Serial.println(data, HEX);
   }
-  #endif
+#endif
   return data;
 }
 

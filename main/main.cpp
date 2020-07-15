@@ -2,7 +2,7 @@
 #include "fabgl.h"
 #include "trs.h"
 #include "trs-keyboard.h"
-#include "sound.h"
+#include "i2s.h"
 #include "cassette.h"
 #include "io.h"
 #include "ui.h"
@@ -33,9 +33,8 @@ void setup() {
   Serial.println(esp_get_free_heap_size());
   Canvas.clear();
   init_trs();
-  init_sound();
   z80_reset(0);
-  init_cassette_in();
+  init_i2s();
   init_io();
   init_settings();
 }

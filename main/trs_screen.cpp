@@ -77,7 +77,6 @@ void ScreenBuffer::refresh()
 void ScreenBuffer::update(uint8_t* from, uint8_t* to)
 {
   int pos = from - screenBuffer;
-  printf("update(): %d\n", pos);
   while (from != to) {
     drawChar(pos, *from);
     pos++;

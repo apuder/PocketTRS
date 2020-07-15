@@ -2,7 +2,7 @@
 #include "z80.h"
 #include "trs_screen.h"
 #include "trs.h"
-#include "sound.h"
+#include "i2s.h"
 #include "io.h"
 #include <unistd.h>
 #include <time.h>
@@ -10,6 +10,7 @@
 #include <errno.h>
 #include <string.h>
 #include <Arduino.h>
+
 
 #include "rom/model3-frehd.cpp-inc"
 
@@ -44,7 +45,6 @@ uint8_t peek_mem(uint16_t address)
 }
 
 //------------------------------------------------------------------
-
 
 static tstate_t total_tstate_count = 0;
 
@@ -84,9 +84,11 @@ static byte z80_io_read(int param, ushort address)
   case 0xff:
     return z80_in(address, total_tstate_count);
   default:
+#if 0
     Serial.print("in(");
     Serial.print(address);
     Serial.println(")");
+#endif
     return 255;
   }
 }
