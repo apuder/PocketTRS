@@ -51,9 +51,9 @@ IOREQ_N
 Wire Wire Line
 	2000 1400 1700 1400
 Text GLabel 1700 1800 0    50   Input ~ 0
-PS2_CLK
-Text GLabel 1150 1900 0    50   Input ~ 0
 PS2_DATA
+Text GLabel 1150 1900 0    50   Input ~ 0
+PS2_CLK
 Text GLabel 1700 2000 0    50   Input ~ 0
 CASS_OUT
 Wire Wire Line
