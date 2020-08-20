@@ -5,10 +5,13 @@
 #include "cassette.h"
 #include "spi.h"
 #include "i2s.h"
+#include "trs-io.h"
+#include "frehd.h"
 #include "config.h"
 
 
 static uint8_t modeimage = 8;
+static uint8_t port_0xe0 = 0b11110011;
 static uint8_t port_0xec = 0xff;
 
 
@@ -60,20 +63,30 @@ void z80_out(uint8_t address, uint8_t data, tstate_t z80_state_t_count)
     Serial.println(")");
   }
 #endif
+  if ((address & 0xc0) == 0xc0) {
+    frehd_out(address, data);
+    frehd_check_action();
+  } else if (address == 31) {
+    if (!TrsIO::outZ80(data)) {
+      TrsIO::processInBackground();
+      port_0xe0 &= ~(1 << 3);
+    }
+  } else {
 #ifndef DISABLE_IO
-  // Configure port A as output
-  set_iodira(0);
-  // Set the I/O address on port B
-  set_gpiob(address);
-  // Write the data to port A
-  writePortExpander(MCP23S17, MCP23S17_GPIOA, data);
-  // Assert IORQ_N and OUT_N
-  writePortExpander(MCP23S08, MCP23S08_GPIO, ~(TRS_IORQ | TRS_OUT));
-  // Busy wait while IOBUSWAIT_N is asserted
-  while (!(readPortExpander(MCP23S08, MCP23S08_GPIO) & TRS_IOBUSWAIT)) ;
-  // Release IORQ_N and OUT_N
-  writePortExpander(MCP23S08, MCP23S08_GPIO, 0xff);
+    // Configure port A as output
+    set_iodira(0);
+    // Set the I/O address on port B
+    set_gpiob(address);
+    // Write the data to port A
+    writePortExpander(MCP23S17, MCP23S17_GPIOA, data);
+    // Assert IORQ_N and OUT_N
+    writePortExpander(MCP23S08, MCP23S08_GPIO, ~(TRS_IORQ | TRS_OUT));
+    // Busy wait while IOBUSWAIT_N is asserted
+    while (!(readPortExpander(MCP23S08, MCP23S08_GPIO) & TRS_IOBUSWAIT)) ;
+    // Release IORQ_N and OUT_N
+    writePortExpander(MCP23S08, MCP23S08_GPIO, 0xff);
 #endif
+  }
 }
 
 uint8_t z80_in(uint8_t address, tstate_t z80_state_t_count)
@@ -90,10 +103,14 @@ uint8_t z80_in(uint8_t address, tstate_t z80_state_t_count)
 #else
     case 0xe0:
     {
-      // Bit 2 is 0 to signal that a RTC INT happened. See ROM address 0x35D8
-      uint8_t b = 0b11110011;
-      b |= (readPortExpander(MCP23S08, MCP23S08_GPIO) & TRS_IOBUSINT) ? (1 << 3) : 0;
-      return b;
+      if (1) {
+	return port_0xe0;
+      } else {
+	// Bit 2 is 0 to signal that a RTC INT happened. See ROM address 0x35D8
+	uint8_t b = port_0xe0;
+	b |= (readPortExpander(MCP23S08, MCP23S08_GPIO) & TRS_IOBUSINT) ? (1 << 3) : 0;
+	return b;
+      }
     }
 #endif
     case 0xff:
@@ -103,30 +120,40 @@ uint8_t z80_in(uint8_t address, tstate_t z80_state_t_count)
     // I/O disabled
     return 0xff;
   }
-  // Configure port A as input
-  set_iodira(0xff);
-  // Set the I/O address on port B
-  set_gpiob(address);
-  // Assert IORQ_N and IN_N
-  writePortExpander(MCP23S08, MCP23S08_GPIO, 0xff & ~(TRS_IORQ | TRS_IN));
-  while (!(readPortExpander(MCP23S08, MCP23S08_GPIO) & TRS_IOBUSWAIT)) ;
-  // Busy wait while IOBUSWAIT_N is asserted
-  uint8_t data = readPortExpander(MCP23S17, MCP23S17_GPIOA);
-  // Release IORQ_N and IN_N
-  writePortExpander(MCP23S08, MCP23S08_GPIO, 0xff);
-#if 0
   if ((address & 0xc0) == 0xc0) {
-    Serial.print("in(");
-    Serial.print(address);
-    Serial.print("): 0x");
-    Serial.println(data, HEX);
-  }
+    frehd_check_action();
+    return frehd_in(address & 0x0f);
+  } else if (address == 31) {
+    port_0xe0 |= 1 << 3;
+    return TrsIO::inZ80();
+  } else {
+    // Configure port A as input
+    set_iodira(0xff);
+    // Set the I/O address on port B
+    set_gpiob(address);
+    // Assert IORQ_N and IN_N
+    writePortExpander(MCP23S08, MCP23S08_GPIO, 0xff & ~(TRS_IORQ | TRS_IN));
+    while (!(readPortExpander(MCP23S08, MCP23S08_GPIO) & TRS_IOBUSWAIT)) ;
+    // Busy wait while IOBUSWAIT_N is asserted
+    uint8_t data = readPortExpander(MCP23S17, MCP23S17_GPIOA);
+    // Release IORQ_N and IN_N
+    writePortExpander(MCP23S08, MCP23S08_GPIO, 0xff);
+#if 0
+    if ((address & 0xc0) == 0xc0) {
+      Serial.print("in(");
+      Serial.print(address);
+      Serial.print("): 0x");
+      Serial.println(data, HEX);
+    }
 #endif
-  return data;
+    return data;
+  }
+  return 0xff;
 }
 
 void init_io()
 {
+  init_frehd();
 #ifndef DISABLE_IO
   init_spi();
 #endif

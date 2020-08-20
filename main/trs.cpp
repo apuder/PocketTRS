@@ -123,11 +123,13 @@ static void z80_io_write(int param, ushort address, byte data)
     z80_out(address, data, total_tstate_count);
     break;
   default:
+#if 0
     Serial.print("out(");
     Serial.print(address);
     Serial.print(",");
     Serial.print(data);
     Serial.println(")");
+#endif
     break;
   }
 }
@@ -178,6 +180,11 @@ void z80_reset(ushort entryAddr)
   z80ctx.memWrite = z80_mem_write;
   z80ctx.ioRead = z80_io_read;
   z80ctx.ioWrite = z80_io_write;
+}
+
+void z80_reset()
+{
+  Z80RESET(&z80ctx);
 }
 
 void z80_run()
