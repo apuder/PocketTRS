@@ -3,4 +3,4 @@
 	url = https://github.com/espressif/arduino-esp32.git
 [submodule "components/trs-io/TRS-IO"]
 	path = components/trs-io/TRS-IO
-	url = git@github.com:apuder/TRS-IO.git
+	url = https://github.com/apuder/TRS-IO.git
