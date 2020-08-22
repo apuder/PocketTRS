@@ -5,16 +5,19 @@
 
 extern "C" {
   #include <trs-lib.h>
+  #include "settings.h"
 }
 
 #define MENU_CONFIGURE 0
 #define MENU_STATUS 1
-#define MENU_HELP 2
-#define MENU_EXIT 3
+#define MENU_RESET 2
+#define MENU_HELP 3
+#define MENU_EXIT 4
 
 static menu_item_t main_menu_items[] = {
   {MENU_CONFIGURE, "Configure"},
   {MENU_STATUS, "Status"},
+  {MENU_RESET, "Reset Settings"},
   {MENU_HELP, "Help"},
   {MENU_EXIT, "Exit"}
 };
@@ -91,6 +94,10 @@ void configure_pocket_trs()
       break;
     case MENU_STATUS:
       status();
+      break;
+    case MENU_RESET:
+      reset_settings();
+      esp_restart();
       break;
     case MENU_HELP:
       help();

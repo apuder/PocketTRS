@@ -35,6 +35,7 @@ void setup() {
   init_io();
   init_settings();
   init_wifi();
+  init_time();
   start_mg(true);
   delay(5000);
   VGAController.begin(VGA_RED, VGA_GREEN, VGA_BLUE, VGA_HSYNC, VGA_VSYNC);
@@ -63,6 +64,7 @@ void loop() {
   if (Keyboard.virtualKeyAvailable()) {
     bool down;
     auto vk = Keyboard.getNextVirtualKey(&down);
+    Serial.printf("VirtualKey = %s\n", Keyboard.virtualKeyToString(vk));
     if (down && vk == fabgl::VK_F3) {
       configure_pocket_trs();
     } else if (down && vk == fabgl::VK_F9) {

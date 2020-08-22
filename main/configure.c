@@ -50,7 +50,9 @@ static form_item_t configuration_form[] = {
 
 void configure()
 {
-  screen_color = get_screen_color();
+  screen_color = get_setting_screen_color();
+  enable_trs_io = get_setting_trs_io();
   form("Configuration", configuration_form, false);
-  set_screen_color(screen_color);
+  set_setting_screen_color(screen_color);
+  set_setting_trs_io(enable_trs_io);
 }
