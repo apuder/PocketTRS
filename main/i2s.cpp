@@ -239,5 +239,5 @@ void init_i2s()
 
   trsSamplesGenerator = new TRSSamplesGenerator();
   xTaskCreatePinnedToCore(i2sTask, "i2s", 2048, NULL,
-			  tskIDLE_PRIORITY + 3, NULL, 0);
+			  tskIDLE_PRIORITY + 3, NULL, 1);
 }

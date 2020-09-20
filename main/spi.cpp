@@ -22,10 +22,6 @@ spi_device_handle_t spi_mcp4351_h;
 
 static xQueueHandle gpio_evt_queue = NULL;
 
-static void IRAM_ATTR gpio_isr_handler(void* arg)
-{
-  xQueueSendFromISR(gpio_evt_queue, NULL, NULL);
-}
 
 void writePortExpander(spi_device_handle_t dev, uint8_t cmd, uint8_t data)
 {
@@ -141,14 +137,24 @@ void wire_test_port_expander()
 static void wire_test_digital_pot()
 {
   uint8_t step = 0;
+  gpio_config_t gpioConfig;
+
+  gpioConfig.pin_bit_mask = (1ULL << VGA_RED) | (1ULL << VGA_GREEN) | (1ULL << VGA_BLUE);
+  gpioConfig.mode = GPIO_MODE_OUTPUT;
+  gpioConfig.intr_type = GPIO_INTR_DISABLE;
+  gpio_config(&gpioConfig);
+  gpio_set_level(VGA_RED, 1);
+  gpio_set_level(VGA_GREEN, 1);
+  gpio_set_level(VGA_BLUE, 1);
+
 
   while (1) {
     printf("Step: %d\n", step);
     writeDigiPot(0, step);
     writeDigiPot(1, step);
     writeDigiPot(2, step);
-    delay(500);
-    step++;
+    delay(1000);
+    step += 10;
   }
 }
 #endif

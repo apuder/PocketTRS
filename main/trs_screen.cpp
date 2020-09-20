@@ -15,6 +15,7 @@
 #include "font/font-data-single"
 #include "font/font-data-double"
 
+extern fabgl::Canvas Canvas;
 
 ScreenBuffer::ScreenBuffer(byte*   screenBuffer,
 			   uint8_t width,

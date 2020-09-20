@@ -1,5 +1,6 @@
 
 #include "ui.h"
+#include "storage.h"
 #include "trs_screen.h"
 #include "fabgl.h"
 
@@ -26,6 +27,8 @@ MENU(main_menu, "PocketTRS");
 
 static ScreenBuffer* screenBuffer;
 
+extern fabgl::PS2Controller PS2Controller;
+
 static void screen_update(uint8_t* from, uint8_t* to)
 {
   screenBuffer->update(from, to);
@@ -33,13 +36,15 @@ static void screen_update(uint8_t* from, uint8_t* to)
 
 static char get_next_key()
 {
+  auto keyboard = PS2Controller.keyboard();
+
   while (true) {
-    if (!Keyboard.virtualKeyAvailable()) {
+    if (!keyboard->virtualKeyAvailable()) {
       continue;
     }
   
     bool down;
-    auto vk = Keyboard.getNextVirtualKey(&down);
+    auto vk = keyboard->getNextVirtualKey(&down);
     if (!down) {
       continue;
     }
@@ -59,7 +64,7 @@ static char get_next_key()
     case fabgl::VK_KP_LEFT:
       return KEY_LEFT;
     default:
-      int c = Keyboard.virtualKeyToASCII(vk);
+      int c = keyboard->virtualKeyToASCII(vk);
       if (c > -1) {
 	return c;
       }
@@ -97,6 +102,7 @@ void configure_pocket_trs()
       break;
     case MENU_RESET:
       reset_settings();
+      storage_erase();
       esp_restart();
       break;
     case MENU_HELP:
