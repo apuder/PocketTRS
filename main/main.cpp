@@ -1,4 +1,3 @@
-#if 0
 #include "fabgl.h"
 #include "trs.h"
 #include "trs-keyboard.h"
@@ -20,7 +19,7 @@
 #include "ntp_sync.h"
 
 
-fabgl::VGA16Controller DisplayController;
+fabgl::VGAController DisplayController;
 fabgl::Canvas        Canvas(&DisplayController);
 fabgl::PS2Controller PS2Controller;
 
@@ -39,32 +38,25 @@ void setup() {
   init_i2s();
   init_io();
   init_settings();
-  //init_wifi();
+  init_wifi();
   //init_time();
   //start_mg(true);
   //return;
-  Serial.printf("A\n");
-  //delay(5000);
-  Serial.printf("B\n");
+  delay(5000);
   DisplayController.begin(VGA_RED, VGA_GREEN, VGA_BLUE, VGA_HSYNC, VGA_VSYNC);
-  Serial.printf("C\n");
-  DisplayController.setResolution(VGA_640x480_60Hz);//VGA_512x192_60Hz);
-  //DisplayController.enableBackgroundPrimitiveExecution(false);
-  //DisplayController.enableBackgroundPrimitiveTimeout(false);
-  Serial.printf("D\n");
-  Canvas.setBrushColor(Color::White);//Black);
+  DisplayController.setResolution(VGA_512x192_60Hz);
+  DisplayController.enableBackgroundPrimitiveExecution(false);
+  DisplayController.enableBackgroundPrimitiveTimeout(false);
+  DisplayController.moveScreen(-5, 0);
+  Canvas.setBrushColor(Color::Black);
   Canvas.setGlyphOptions(GlyphOptions().FillBackground(true));
   Canvas.setPenColor(Color::White);
-  Serial.printf("E\n");
   PS2Controller.begin(PS2Preset::KeyboardPort0, KbdMode::CreateVirtualKeysQueue);
   Serial.print("Heap size after VGA init: ");
   Serial.println(ESP.getFreeHeap());
   Serial.print("Free heap: ");
   Serial.println(esp_get_free_heap_size());
   Canvas.clear();
-  init_wifi();
-  delay(5000);
-  Serial.printf("F\n");
   
 }
 
@@ -73,18 +65,13 @@ void loop() {
   auto keyboard = PS2Controller.keyboard();
 
   z80_run();
-  if (keyboard == nullptr) {
-	  Serial.printf("nullptr\n");
-	  return;
-  }
-  if (!keyboard->isKeyboardAvailable()) {
-	  Serial.printf("Keyboard not available\n");
-	  return;
+  if (keyboard == nullptr || !keyboard->isKeyboardAvailable()) {
+    return;
   }
   if (keyboard->virtualKeyAvailable()) {
     bool down;
     auto vk = keyboard->getNextVirtualKey(&down);
-    //Serial.printf("VirtualKey = %s\n", keyboard->virtualKeyToString(vk));
+    Serial.printf("VirtualKey = %s\n", keyboard->virtualKeyToString(vk));
     if (down && vk == fabgl::VK_F3) {
       configure_pocket_trs();
     } else if (down && vk == fabgl::VK_F9) {
@@ -94,4 +81,3 @@ void loop() {
     }
   }
 }
-#endif
