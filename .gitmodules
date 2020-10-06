@@ -1,3 +1,6 @@
 [submodule "components/trs-io/TRS-IO"]
 	path = components/trs-io/TRS-IO
 	url = https://github.com/apuder/TRS-IO.git
+[submodule "components/FabGL"]
+	path = components/FabGL
+	url = https://github.com/fdivitto/FabGL.git
