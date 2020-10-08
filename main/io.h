@@ -1,7 +1,6 @@
 
 #pragma once
 
-#include <Arduino.h>
 #include "trs.h"
 
 void z80_out(uint8_t address, uint8_t data, tstate_t z80_state_t_count);

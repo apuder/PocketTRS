@@ -19,16 +19,15 @@
 #include "ntp_sync.h"
 
 
-fabgl::VGAController DisplayController;
+fabgl::VGA16Controller DisplayController;
 fabgl::Canvas        Canvas(&DisplayController);
 fabgl::PS2Controller PS2Controller;
 
 void setup() {
-  Serial.begin(115200);
-  Serial.print("Size PSRAM: ");
-  Serial.println(ESP.getPsramSize());
-  Serial.print("Heap size before VGA init: ");
-  Serial.println(ESP.getFreeHeap());
+#if 0
+  printf("Size PSRAM: %d\n", ESP.getPsramSize());
+  printf("Heap size before VGA init: %d\n", ESP.getFreeHeap());
+#endif
 
   init_events();
   init_trs_io();
@@ -39,10 +38,7 @@ void setup() {
   init_io();
   init_settings();
   init_wifi();
-  //init_time();
-  //start_mg(true);
-  //return;
-  delay(5000);
+  vTaskDelay(5000 / portTICK_PERIOD_MS);
   DisplayController.begin(VGA_RED, VGA_GREEN, VGA_BLUE, VGA_HSYNC, VGA_VSYNC);
   DisplayController.setResolution(VGA_512x192_60Hz);
   DisplayController.enableBackgroundPrimitiveExecution(false);
@@ -52,12 +48,12 @@ void setup() {
   Canvas.setGlyphOptions(GlyphOptions().FillBackground(true));
   Canvas.setPenColor(Color::White);
   PS2Controller.begin(PS2Preset::KeyboardPort0, KbdMode::CreateVirtualKeysQueue);
-  Serial.print("Heap size after VGA init: ");
-  Serial.println(ESP.getFreeHeap());
-  Serial.print("Free heap: ");
-  Serial.println(esp_get_free_heap_size());
+
+#if 0
+  printf("Heap size after VGA init: %d\n", ESP.getFreeHeap());
+  printf("Free heap: %d\n", esp_get_free_heap_size());
+#endif
   Canvas.clear();
-  
 }
 
 void loop() {
@@ -71,7 +67,7 @@ void loop() {
   if (keyboard->virtualKeyAvailable()) {
     bool down;
     auto vk = keyboard->getNextVirtualKey(&down);
-    Serial.printf("VirtualKey = %s\n", keyboard->virtualKeyToString(vk));
+    //printf("VirtualKey = %s\n", keyboard->virtualKeyToString(vk));
     if (down && vk == fabgl::VK_F3) {
       configure_pocket_trs();
     } else if (down && vk == fabgl::VK_F9) {
@@ -80,4 +76,10 @@ void loop() {
       process_key(vk, down);
     }
   }
+}
+
+extern "C" void app_main()
+{
+  setup();
+  while (true) loop();
 }

@@ -1,7 +1,8 @@
 
-#include <Arduino.h>
 #include <driver/gpio.h>
 #include <driver/spi_master.h>
+#include <freertos/task.h>
+#include <string.h>
 #include "config.h"
 #include "spi.h"
 
@@ -111,12 +112,12 @@ void wire_test_port_expander()
     writePortExpander(MCP23S17, MCP23S17_GPIOA, data);
     writePortExpander(MCP23S17, MCP23S17_GPIOB, data);
     writePortExpander(MCP23S08, MCP23S08_GPIO, data);
-    delay(500);
+    vTaskDelay(500 / portTICK_PERIOD_MS);
     data ^= 0xff;
     writePortExpander(MCP23S17, MCP23S17_GPIOA, data);
     writePortExpander(MCP23S17, MCP23S17_GPIOB, data);
     writePortExpander(MCP23S08, MCP23S08_GPIO, data);
-    delay(500);
+    vTaskDelay(500 / portTICK_PERIOD_MS);
     data ^= 0xff;
   }
 #else
@@ -153,7 +154,7 @@ static void wire_test_digital_pot()
     writeDigiPot(0, step);
     writeDigiPot(1, step);
     writeDigiPot(2, step);
-    delay(1000);
+    vTaskDelay(1000 / portTICK_PERIOD_MS);
     step += 10;
   }
 }

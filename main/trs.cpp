@@ -4,12 +4,12 @@
 #include "trs.h"
 #include "i2s.h"
 #include "io.h"
+#include <freertos/task.h>
 #include <unistd.h>
 #include <time.h>
 #include <sys/time.h>
 #include <errno.h>
 #include <string.h>
-#include <Arduino.h>
 
 
 #include "rom/model3-frehd.cpp-inc"
@@ -160,7 +160,7 @@ static void sync_time_with_host()
   curtime = get_ticks();
 
   if (lasttime + deltatime > curtime) {
-    delay(lasttime + deltatime - curtime);
+    vTaskDelay((lasttime + deltatime - curtime) / portTICK_PERIOD_MS);
   }
   curtime = get_ticks();
 

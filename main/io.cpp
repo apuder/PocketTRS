@@ -1,6 +1,5 @@
 
 
-#include <Arduino.h>
 #include "driver/gpio.h"
 #include "cassette.h"
 #include "spi.h"
