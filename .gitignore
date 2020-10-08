@@ -4,4 +4,18 @@ build/
 .gcc-flags.json
 .travis.yml
 .vscode
+
+# KiCad Files to Ignore
+*.000
+*.bak
+*.bck
+*.kicad_pcb-bak
+*.kicad_sch-bak
+*.kicad_prl
+*.sch-bak
+_autosave-*
+*.tmp
+*-save.pro
+*-save.kicad_pcb
+fp-info-cache
 *~
