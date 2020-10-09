@@ -3,6 +3,7 @@
 #include "storage.h"
 #include "trs_screen.h"
 #include "fabgl.h"
+#include <freertos/task.h>
 
 extern "C" {
   #include <trs-lib.h>
@@ -39,6 +40,7 @@ static char get_next_key()
   auto keyboard = PS2Controller.keyboard();
 
   while (true) {
+    vTaskDelay(portTICK_PERIOD_MS);
     if (!keyboard->virtualKeyAvailable()) {
       continue;
     }
