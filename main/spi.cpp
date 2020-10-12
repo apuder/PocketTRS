@@ -103,7 +103,7 @@ void wire_test_port_expander()
 
 #if 1
   // Writing
-  uint8_t data = 0;
+  uint8_t data = 0xaa;
   writePortExpander(MCP23S17, MCP23S17_IODIRA, 0);
   writePortExpander(MCP23S17, MCP23S17_IODIRB, 0);
   writePortExpander(MCP23S08, MCP23S08_IODIR, 0);
@@ -112,12 +112,12 @@ void wire_test_port_expander()
     writePortExpander(MCP23S17, MCP23S17_GPIOA, data);
     writePortExpander(MCP23S17, MCP23S17_GPIOB, data);
     writePortExpander(MCP23S08, MCP23S08_GPIO, data);
-    vTaskDelay(500 / portTICK_PERIOD_MS);
+    vTaskDelay(1000 / portTICK_PERIOD_MS);
     data ^= 0xff;
     writePortExpander(MCP23S17, MCP23S17_GPIOA, data);
     writePortExpander(MCP23S17, MCP23S17_GPIOB, data);
     writePortExpander(MCP23S08, MCP23S08_GPIO, data);
-    vTaskDelay(500 / portTICK_PERIOD_MS);
+    vTaskDelay(1000 / portTICK_PERIOD_MS);
     data ^= 0xff;
   }
 #else
