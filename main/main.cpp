@@ -19,7 +19,7 @@
 #include "ntp_sync.h"
 
 
-fabgl::VGA16Controller DisplayController;
+fabgl::VGA2Controller DisplayController;
 fabgl::Canvas        Canvas(&DisplayController);
 fabgl::PS2Controller PS2Controller;
 
