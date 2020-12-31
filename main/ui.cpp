@@ -103,7 +103,7 @@ void configure_pocket_trs()
       status();
       break;
     case MENU_RESET:
-      reset_settings();
+      SettingsBase::reset();
       storage_erase();
       esp_restart();
       break;

@@ -3,6 +3,8 @@
 #include "form.h"
 #include "screen.h"
 #include <string.h>
+#include <assert.h>
+
 
 static window_t wnd_form;
 static uint8_t num_form_items;
@@ -30,8 +32,8 @@ static void draw_input_field(form_input_t* inp, bool has_focus) {
     } else {
       char buf[2] = {0, 0};
       for (i = 0; i < width - 3; i++) {
-	buf[0] = inp->buf[i];
-	wnd_print(&wnd_form, false, buf);
+        buf[0] = inp->buf[i];
+        wnd_print(&wnd_form, false, buf);
       }
       wnd_print(&wnd_form, false, "...");
     }
@@ -63,7 +65,7 @@ static void draw_select_field_items(form_select_t* sel)
   uint8_t current = sel->first;
 
   do {
-    char* item;
+    const char* item;
     bool frame;
     
     item = (*sel->items)[current];
@@ -120,28 +122,29 @@ static void redraw_form(form_item_t* form) {
   }
 }
 
-static void handle_key_for_input(uint8_t n, char key, form_input_t* inp)
+static bool handle_key_for_input(uint8_t n, char key, form_input_t* inp)
 {
   uint8_t len = strlen(inp->buf);
 
   if (key == KEY_LEFT) {
     if (len == 0) {
-      return;
+      return false;
     }
     len--;
     inp->buf[len] = '\0';
   } else {
     if (len == inp->len) {
-      return;
+      return false;
     }
     inp->buf[len++] = key;
     inp->buf[len] = '\0';
   }
   wnd_goto(&wnd_form, form_items_col3, n);
   draw_input_field(inp, true);
+  return true;
 }
 
-static void handle_key_for_checkbox(uint8_t n, char key, form_checkbox_t* cb)
+static bool handle_key_for_checkbox(uint8_t n, char key, form_checkbox_t* cb)
 {
   bool checked = *cb->checked;
   
@@ -154,12 +157,14 @@ static void handle_key_for_checkbox(uint8_t n, char key, form_checkbox_t* cb)
   if (key == 'Y' || key == 'y') {
     checked = true;
   }
+  bool dirty = *cb->checked != checked;
   *cb->checked = checked;
   wnd_goto(&wnd_form, form_items_col3, n);
   draw_checkbox_field(cb, true);
+  return dirty;
 }
 
-static void handle_key_for_select(uint8_t n, char key, form_select_t* sel)
+static bool handle_key_for_select(uint8_t n, char key, form_select_t* sel)
 {
   uint8_t selected = *sel->selected;
   
@@ -175,24 +180,28 @@ static void handle_key_for_select(uint8_t n, char key, form_select_t* sel)
     }
     selected--;
   }
+  bool dirty = *sel->selected != selected;
   *sel->selected = selected;
   wnd_goto(&wnd_form, form_items_col3, n);
   draw_select_field(sel, true);
+  return dirty;
 }
 
 static void handle_key(uint8_t n, char key, form_item_t* item)
 {
+  bool dirty = false;
   switch(item->type) {
   case FORM_TYPE_INPUT:
-    handle_key_for_input(n, key, &item->u.input);
+    dirty = handle_key_for_input(n, key, &item->u.input);
     break;
   case FORM_TYPE_CHECKBOX:
-    handle_key_for_checkbox(n, key, &item->u.checkbox);
+    dirty = handle_key_for_checkbox(n, key, &item->u.checkbox);
     break;
   case FORM_TYPE_SELECT:
-    handle_key_for_select(n, key, &item->u.select);
+    dirty = handle_key_for_select(n, key, &item->u.select);
     break;
   }
+  item->dirty = dirty;
 }
 
 static char do_input(form_item_t* form, bool show_from_left)
@@ -211,39 +220,39 @@ static char do_input(form_item_t* form, bool show_from_left)
       bool redraw = false;
       redraw_form_item(i, field, true);
       if (first_time) {
-	screen_show(show_from_left);
-	set_screen_to_foreground();
-	first_time = false;
+        screen_show(show_from_left);
+        set_screen_to_foreground();
+        first_time = false;
       }
       ch = get_key();
       switch (ch) {
       case KEY_BREAK:
         redraw_form_item(i, field, false);
-	return ch;
+        return ch;
       case KEY_UP:
-	do {
-	  i = (i - 1 + num_form_items) % num_form_items;
-	} while (form[i].type == FORM_TYPE_HEADER);
-	redraw = true;
-	break;
+        do {
+          i = (i - 1 + num_form_items) % num_form_items;
+        } while (form[i].type == FORM_TYPE_HEADER);
+        redraw = true;
+        break;
       case KEY_ENTER:
-	if (i + 1 == num_form_items) {
+        if (i + 1 == num_form_items) {
           redraw_form_item(i, field, false);
-	  return ch;
-	}
-	// Fallthrough
+          return ch;
+        }
+        // Fallthrough
       case KEY_DOWN:
-	do {
-	  i = (i + 1) % num_form_items;
-	} while (form[i].type == FORM_TYPE_HEADER);
-	redraw = true;
-	break;
+        do {
+          i = (i + 1) % num_form_items;
+        } while (form[i].type == FORM_TYPE_HEADER);
+        redraw = true;
+        break;
       default:
-	handle_key(i, ch, field);
-	break;
+        handle_key(i, ch, field);
+        break;
       }
       if (redraw) {
-	break;
+        break;
       }
     }
   }
@@ -259,6 +268,7 @@ static void compute_form_layout(form_item_t* form)
   num_form_items = 0;
   
   while (form->type != FORM_TYPE_END) {
+    form->dirty = false;
     num_form_items++;
     if (form->type == FORM_TYPE_HEADER) {
       has_header = true;
@@ -276,7 +286,6 @@ static void compute_form_layout(form_item_t* form)
 static void draw_form(form_item_t* form)
 {
   uint8_t n = 0;
-  uint8_t len;
   form_item_t* save = form;
   bool is_header;
   
@@ -306,4 +315,59 @@ uint8_t form(const char* title, form_item_t* form,
   compute_form_layout(form);
   draw_form(form);
   return do_input(form, show_from_left);
+}
+
+//----------------------------------------------------
+
+static form_item_t *__form = NULL;
+
+form_item_t* init_form_begin(form_item_t* form)
+{
+  assert(__form == NULL);
+  __form = form;
+  return __form;
+}
+
+form_item_t* init_form_header(const char* label)
+{
+  __form->type = FORM_TYPE_HEADER;
+  __form->label = label;
+  return __form++;
+}
+
+form_item_t* init_form_checkbox(const char* label, bool* checked)
+{
+  __form->type = FORM_TYPE_CHECKBOX;
+  __form->dirty = false;
+  __form->label = label;
+  __form->u.checkbox.checked = checked;
+  return __form++;
+}
+
+form_item_t* init_form_select(const char* label, uint8_t* selected, const char* items[])
+{
+  __form->type = FORM_TYPE_SELECT;
+  __form->dirty = false;
+  __form->label = label;
+  __form->u.select.selected = selected;
+  __form->u.select.items = items;
+  return __form++;
+}
+
+form_item_t* init_form_input(const char* label, uint8_t width, uint8_t len, char* buf)
+{
+  __form->type = FORM_TYPE_INPUT;
+  __form->dirty = false;
+  __form->label = label;
+  __form->u.input.width = width;
+  __form->u.input.len = len;
+  __form->u.input.buf = buf;
+  return __form++;
+}
+
+void __init_form_end(form_item_t* form, int size)
+{
+  __form->type = FORM_TYPE_END;
+  assert(((__form - form) + 1) == (size / sizeof(form_item_t)));
+  __form = NULL;
 }
