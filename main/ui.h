@@ -5,11 +5,12 @@
 extern "C" {
 #endif
 void configure();
-void status();
 void help();
 #ifdef __cplusplus
 }
 #endif
+
+void status();
 
 void configure_pocket_trs();
 
