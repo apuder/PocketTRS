@@ -43,7 +43,7 @@ void setup() {
   DisplayController.setResolution(VGA_512x192_60Hz);
   DisplayController.enableBackgroundPrimitiveExecution(false);
   DisplayController.enableBackgroundPrimitiveTimeout(false);
-  DisplayController.moveScreen(-5, 0);
+  settingsCalibration.setScreenOffset();
   Canvas.setBrushColor(Color::Black);
   Canvas.setGlyphOptions(GlyphOptions().FillBackground(true));
   Canvas.setPenColor(Color::White);

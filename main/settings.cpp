@@ -11,4 +11,5 @@ void init_settings()
   SettingsBase::init();
   settingsScreen.init();
   settingsTrsIO.init();
+  settingsCalibration.init();
 }

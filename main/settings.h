@@ -23,6 +23,18 @@ class SettingsBase {
         ESP_ERROR_CHECK(nvs_commit(storage));
     }
 
+    static int8_t nvs_get_i8(const char* key) {
+        int8_t value = 0;
+        esp_err_t err = ::nvs_get_i8(storage, key, &value);
+        assert(err == ESP_OK || err == ESP_ERR_NVS_NOT_FOUND);
+        return value;
+    }
+
+    static void nvs_set_i8(const char* key, int8_t value) {
+        ESP_ERROR_CHECK(::nvs_set_i8(storage, key, value));
+        ESP_ERROR_CHECK(nvs_commit(storage));
+    }
+
     public:
     static void init() {
         // Initialize NVS
@@ -78,6 +90,26 @@ class SettingsTrsIO : public virtual SettingsBase {
 };
 
 extern SettingsTrsIO settingsTrsIO;
+
+
+/****************************************************************
+ * SettingsCalibration
+ ****************************************************************/
+
+class SettingsCalibration : public virtual SettingsBase {
+    private:
+    int8_t screenOffsetX;
+    int8_t screenOffsetY;
+    public:
+    void init();
+    int8_t getScreenOffsetX() { return screenOffsetX; }
+    int8_t getScreenOffsetY() { return screenOffsetY; }
+    void setScreenOffset();
+    void moveScreenOffset(int8_t dx, int8_t dy);
+    void saveScreenOffset();
+};
+
+extern SettingsCalibration settingsCalibration;
 
 
 void init_settings();

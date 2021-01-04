@@ -238,6 +238,6 @@ void init_i2s()
   //adc1_config_channel_atten(ADC1_CHANNEL_0, ADC_ATTEN_DB_11);
 
   trsSamplesGenerator = new TRSSamplesGenerator();
-  xTaskCreatePinnedToCore(i2sTask, "i2s", 2048, NULL,
+  xTaskCreatePinnedToCore(i2sTask, "i2s", 3000, NULL,
 			  tskIDLE_PRIORITY + 3, NULL, 1);
 }
