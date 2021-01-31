@@ -1,7 +1,10 @@
 
 #include "ui.h"
+#include "calibrate.h"
+#include "storage.h"
 #include "trs_screen.h"
 #include "fabgl.h"
+#include <freertos/task.h>
 
 extern "C" {
   #include <trs-lib.h>
@@ -9,13 +12,15 @@ extern "C" {
 }
 
 #define MENU_CONFIGURE 0
-#define MENU_STATUS 1
-#define MENU_RESET 2
-#define MENU_HELP 3
-#define MENU_EXIT 4
+#define MENU_CALIBRATE 1
+#define MENU_STATUS 2
+#define MENU_RESET 3
+#define MENU_HELP 4
+#define MENU_EXIT 5
 
 static menu_item_t main_menu_items[] = {
   {MENU_CONFIGURE, "Configure"},
+  {MENU_CALIBRATE, "Calibrate Screen"},
   {MENU_STATUS, "Status"},
   {MENU_RESET, "Reset Settings"},
   {MENU_HELP, "Help"},
@@ -26,6 +31,8 @@ MENU(main_menu, "PocketTRS");
 
 static ScreenBuffer* screenBuffer;
 
+extern fabgl::PS2Controller PS2Controller;
+
 static void screen_update(uint8_t* from, uint8_t* to)
 {
   screenBuffer->update(from, to);
@@ -33,13 +40,16 @@ static void screen_update(uint8_t* from, uint8_t* to)
 
 static char get_next_key()
 {
+  auto keyboard = PS2Controller.keyboard();
+
   while (true) {
-    if (!Keyboard.virtualKeyAvailable()) {
+    vTaskDelay(portTICK_PERIOD_MS);
+    if (!keyboard->virtualKeyAvailable()) {
       continue;
     }
   
     bool down;
-    auto vk = Keyboard.getNextVirtualKey(&down);
+    auto vk = keyboard->getNextVirtualKey(&down);
     if (!down) {
       continue;
     }
@@ -59,9 +69,9 @@ static char get_next_key()
     case fabgl::VK_KP_LEFT:
       return KEY_LEFT;
     default:
-      int c = Keyboard.virtualKeyToASCII(vk);
+      int c = keyboard->virtualKeyToASCII(vk);
       if (c > -1) {
-	return c;
+        return c;
       }
       break;
     }
@@ -92,11 +102,15 @@ void configure_pocket_trs()
     case MENU_CONFIGURE:
       configure();
       break;
+    case MENU_CALIBRATE:
+      calibrate();
+      break;
     case MENU_STATUS:
       status();
       break;
     case MENU_RESET:
-      reset_settings();
+      SettingsBase::reset();
+      storage_erase();
       esp_restart();
       break;
     case MENU_HELP:

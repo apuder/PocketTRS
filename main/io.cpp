@@ -1,6 +1,5 @@
 
 
-#include <Arduino.h>
 #include "driver/gpio.h"
 #include "cassette.h"
 #include "spi.h"
@@ -64,7 +63,7 @@ void z80_out(uint8_t address, uint8_t data, tstate_t z80_state_t_count)
   }
 #endif
 
-  if (get_setting_trs_io()) {
+  if (settingsTrsIO.isEnabled()) {
     if ((address & 0xc0) == 0xc0) {
       frehd_out(address, data);
       frehd_check_action();
@@ -109,7 +108,7 @@ uint8_t z80_in(uint8_t address, tstate_t z80_state_t_count)
 #else
     case 0xe0:
     {
-      if (get_setting_trs_io()) {
+      if (settingsTrsIO.isEnabled()) {
 	return port_0xe0;
       } else {
 	// Bit 2 is 0 to signal that a RTC INT happened. See ROM address 0x35D8
@@ -127,7 +126,7 @@ uint8_t z80_in(uint8_t address, tstate_t z80_state_t_count)
     return 0xff;
   }
 
-  if (get_setting_trs_io()) {
+  if (settingsTrsIO.isEnabled()) {
     if ((address & 0xc0) == 0xc0) {
       frehd_check_action();
       return frehd_in(address & 0x0f);
@@ -178,3 +177,31 @@ for (int i = 0; i < 10; i++) {
 while(1);
 #endif
 }
+
+
+/*****************************************
+ * SettingsTrsIO
+ *****************************************/
+
+static const char* KEY_TRS_IO = "trs_io";
+
+static bool setting_trs_io;
+
+void SettingsTrsIO::init()
+{
+  uint8_t flag = nvs_get_u8(KEY_TRS_IO);
+  use_trs_io = (flag != 0);
+}
+
+bool SettingsTrsIO::isEnabled()
+{
+  return use_trs_io;
+}
+
+void SettingsTrsIO::setEnabled(bool flag)
+{
+  nvs_set_u8(KEY_TRS_IO, flag ? 1 : 0);
+  use_trs_io = flag;
+}
+
+SettingsTrsIO settingsTrsIO;

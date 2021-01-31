@@ -1,7 +1,8 @@
 
-#include <Arduino.h>
 #include <driver/gpio.h>
 #include <driver/spi_master.h>
+#include <freertos/task.h>
+#include <string.h>
 #include "config.h"
 #include "spi.h"
 
@@ -22,10 +23,6 @@ spi_device_handle_t spi_mcp4351_h;
 
 static xQueueHandle gpio_evt_queue = NULL;
 
-static void IRAM_ATTR gpio_isr_handler(void* arg)
-{
-  xQueueSendFromISR(gpio_evt_queue, NULL, NULL);
-}
 
 void writePortExpander(spi_device_handle_t dev, uint8_t cmd, uint8_t data)
 {
@@ -106,7 +103,7 @@ void wire_test_port_expander()
 
 #if 1
   // Writing
-  uint8_t data = 0;
+  uint8_t data = 0xaa;
   writePortExpander(MCP23S17, MCP23S17_IODIRA, 0);
   writePortExpander(MCP23S17, MCP23S17_IODIRB, 0);
   writePortExpander(MCP23S08, MCP23S08_IODIR, 0);
@@ -115,12 +112,12 @@ void wire_test_port_expander()
     writePortExpander(MCP23S17, MCP23S17_GPIOA, data);
     writePortExpander(MCP23S17, MCP23S17_GPIOB, data);
     writePortExpander(MCP23S08, MCP23S08_GPIO, data);
-    delay(500);
+    vTaskDelay(1000 / portTICK_PERIOD_MS);
     data ^= 0xff;
     writePortExpander(MCP23S17, MCP23S17_GPIOA, data);
     writePortExpander(MCP23S17, MCP23S17_GPIOB, data);
     writePortExpander(MCP23S08, MCP23S08_GPIO, data);
-    delay(500);
+    vTaskDelay(1000 / portTICK_PERIOD_MS);
     data ^= 0xff;
   }
 #else
@@ -141,14 +138,24 @@ void wire_test_port_expander()
 static void wire_test_digital_pot()
 {
   uint8_t step = 0;
+  gpio_config_t gpioConfig;
+
+  gpioConfig.pin_bit_mask = (1ULL << VGA_RED) | (1ULL << VGA_GREEN) | (1ULL << VGA_BLUE);
+  gpioConfig.mode = GPIO_MODE_OUTPUT;
+  gpioConfig.intr_type = GPIO_INTR_DISABLE;
+  gpio_config(&gpioConfig);
+  gpio_set_level(VGA_RED, 1);
+  gpio_set_level(VGA_GREEN, 1);
+  gpio_set_level(VGA_BLUE, 1);
+
 
   while (1) {
     printf("Step: %d\n", step);
     writeDigiPot(0, step);
     writeDigiPot(1, step);
     writeDigiPot(2, step);
-    delay(500);
-    step++;
+    vTaskDelay(1000 / portTICK_PERIOD_MS);
+    step += 10;
   }
 }
 #endif

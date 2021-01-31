@@ -37,6 +37,7 @@ typedef struct {
 typedef struct {
   uint8_t type;
   const char* label;
+  bool dirty;
   union {
     form_input_t input;
     form_checkbox_t checkbox;
@@ -45,5 +46,13 @@ typedef struct {
 } form_item_t;
 
 uint8_t form(const char* title, form_item_t* form, bool show_from_left);
+
+form_item_t* init_form_begin(form_item_t* form);
+form_item_t* init_form_header(const char* label);
+form_item_t* init_form_checkbox(const char* label, bool* checked);
+form_item_t* init_form_select(const char* label, uint8_t* selected, const char* items[]);
+form_item_t* init_form_input(const char* label, uint8_t width, uint8_t len, char* buf);
+void __init_form_end(form_item_t* form, int size);
+#define init_form_end(form) __init_form_end(form, sizeof(form));
 
 #endif

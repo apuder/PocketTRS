@@ -3,6 +3,8 @@
 #include "trs.h"
 #include "trs_screen.h"
 #include "fabgl.h"
+#include "spi.h"
+#include "settings.h"
 
 #define NORMAL 0
 #define EXPANDED 1
@@ -15,6 +17,9 @@
 #include "font/font-data-single"
 #include "font/font-data-double"
 
+//----------------------------------------------------------------
+
+extern fabgl::Canvas Canvas;
 
 ScreenBuffer::ScreenBuffer(byte*   screenBuffer,
 			   uint8_t width,
@@ -114,7 +119,7 @@ void ScreenBuffer::drawChar(ushort pos, byte character)
 }
 
 
-  
+//----------------------------------------------------------------
 
 TRSScreen::TRSScreen()
 {
@@ -147,3 +152,33 @@ void TRSScreen::drawChar(ushort pos, byte character)
 }
 
 TRSScreen trs_screen;
+
+
+
+//----------------------------------------------------------------
+
+static const char* KEY_COLOR  = "color";
+
+
+static const uint8_t wiper_settings[][3] = {
+  {225, 225, 255},
+  {51, 255, 51},
+  {255, 177, 0}};
+
+void SettingsScreen::init() {
+  setScreenColor(getScreenColor());
+}
+
+screen_color_t SettingsScreen::getScreenColor() {
+  return (screen_color_t) nvs_get_u8(KEY_COLOR);
+}
+
+void SettingsScreen::setScreenColor(screen_color_t color) {
+  nvs_set_u8(KEY_COLOR, color);
+  for (int i = 0; i < 3; i++) {
+    writeDigiPot(i, wiper_settings[color][i]);
+  }
+}
+
+SettingsScreen settingsScreen;
+

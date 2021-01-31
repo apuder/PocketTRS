@@ -21,11 +21,7 @@ COMPONENT_EMBED_FILES += $(TRS_IO)/retrostore/loader_cmd.bin
 COMPONENT_EMBED_FILES += $(TRS_IO)/retrostore/rsclient.cmd
 
 COMPONENT_SRCDIRS += $(TRS_IO)/trs-fs
-COMPONENT_PRIV_INCLUDEDIRS += $(TRS_IO)/trs-fs/include
+COMPONENT_ADD_INCLUDEDIRS += $(TRS_IO)/trs-fs/include
 
 COMPONENT_SRCDIRS += $(TRS_IO)/tcpip
 COMPONENT_PRIV_INCLUDEDIRS += $(TRS_IO)/tcpip/include
-
-COMPONENT_SRCDIRS += $(TRS_IO)/trs-fs
-COMPONENT_PRIV_INCLUDEDIRS += $(TRS_IO)/trs-fs/include
-
