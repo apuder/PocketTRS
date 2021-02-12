@@ -1,6 +1,7 @@
 
 
 #include "driver/gpio.h"
+#include "trs_screen.h"
 #include "cassette.h"
 #include "spi.h"
 #include "i2s.h"
@@ -48,6 +49,7 @@ void z80_out(uint8_t address, uint8_t data, tstate_t z80_state_t_count)
     case 0xEF:
       modeimage = data;
       trs_cassette_motor((modeimage & 0x02) >> 1, z80_state_t_count);
+      trs_screen.setExpanded((data & 0x04) >> 2);
       return;
     case 0xff:
       trs_cassette_out(data & 3, z80_state_t_count);

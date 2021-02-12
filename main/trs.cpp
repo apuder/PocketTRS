@@ -97,10 +97,6 @@ static void z80_io_write(int param, ushort address, byte data)
 {
   address &= 0xff;
   switch (address) {
-  case 0xef:
-    /* screen mode select is on D2 */
-    trs_screen.setExpanded((data & 0x04) >> 2);
-    break;
   case 31:
   case 0xc0:
   case 0xc1:
@@ -119,6 +115,9 @@ static void z80_io_write(int param, ushort address, byte data)
   case 0xce:
   case 0xcf:
   case 0xec:
+  case 0xed:
+  case 0xee:
+  case 0xef:
   case 0xff:
     z80_out(address, data, total_tstate_count);
     break;

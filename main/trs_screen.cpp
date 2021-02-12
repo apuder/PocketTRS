@@ -14,8 +14,7 @@
 #define TRS_CHAR_WIDTH 8
 #define TRS_CHAR_HEIGHT 12
 
-#include "font/font-data-single"
-#include "font/font-data-double"
+#include "font/font-data"
 
 //----------------------------------------------------------------
 
@@ -94,14 +93,15 @@ void ScreenBuffer::setExpanded(int flag)
   int bit = flag ? EXPANDED : 0;
   if ((currentMode ^ bit) & EXPANDED) {
     currentMode ^= EXPANDED;
-    Canvas.setGlyphOptions(GlyphOptions().DoubleWidth(((currentMode & EXPANDED) == 0) ? 0 : 1));
+    Canvas.setGlyphOptions(GlyphOptions().DoubleWidth(flag ? 1 : 0)
+                                         .FillBackground(true));
     refresh();
   }
 }
 
 int ScreenBuffer::isExpandedMode()
 {
-  return currentMode & EXPANDED;
+  return (currentMode & EXPANDED) != 0;
 }
 
 void ScreenBuffer::drawChar(ushort pos, byte character)
@@ -109,13 +109,10 @@ void ScreenBuffer::drawChar(ushort pos, byte character)
   if (isExpandedMode() && (pos & 1) != 0) {
     return;
   }
-  int d = isExpandedMode() ? 2 : 1;
-  int pos_x = (pos % width) * TRS_CHAR_WIDTH * d;
+  int pos_x = (pos % width) * TRS_CHAR_WIDTH;
   int pos_y = (pos / width) * TRS_CHAR_HEIGHT;
-//  Canvas.drawGlyph(pos_x, pos_y, TRS_CHAR_WIDTH * d, TRS_CHAR_HEIGHT,
-//    is_expanded_mode() ? font_double : font_single, character);
-  Canvas.drawGlyph(pos_x, pos_y, TRS_CHAR_WIDTH * d, TRS_CHAR_HEIGHT,
-		   isExpandedMode() ? font_double : font_single, character);
+  Canvas.drawGlyph(pos_x, pos_y, TRS_CHAR_WIDTH, TRS_CHAR_HEIGHT,
+    font_single, character);
 }
 
 
