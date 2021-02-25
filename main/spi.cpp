@@ -1,7 +1,8 @@
-
+#include <freertos/FreeRTOS.h>
+#include <freertos/task.h>
+#include <freertos/queue.h>
 #include <driver/gpio.h>
 #include <driver/spi_master.h>
-#include <freertos/task.h>
 #include <string.h>
 #include "config.h"
 #include "spi.h"
@@ -190,7 +191,7 @@ void init_spi()
   spi_bus.quadwp_io_num = -1;
   spi_bus.quadhd_io_num = -1;
   spi_bus.max_transfer_sz = 32;
-  esp_err_t ret = spi_bus_initialize(SPI_HOST, &spi_bus, 0);
+  esp_err_t ret = spi_bus_initialize(SPI_HOST_PE, &spi_bus, 0);
   ESP_ERROR_CHECK(ret);
 
   // Configure SPI device for MCP23S17
@@ -207,7 +208,7 @@ void init_spi()
   spi_mcp23S17.queue_size = 1;
   spi_mcp23S17.pre_cb = NULL;
   spi_mcp23S17.post_cb = NULL;
-  ret = spi_bus_add_device(SPI_HOST, &spi_mcp23S17, &spi_mcp23S17_h);
+  ret = spi_bus_add_device(SPI_HOST_PE, &spi_mcp23S17, &spi_mcp23S17_h);
   ESP_ERROR_CHECK(ret);
 
   // Configure SPI device for MCP23S08
@@ -224,7 +225,7 @@ void init_spi()
   spi_mcp23S08.queue_size = 1;
   spi_mcp23S08.pre_cb = NULL;
   spi_mcp23S08.post_cb = NULL;
-  ret = spi_bus_add_device(HSPI_HOST, &spi_mcp23S08, &spi_mcp23S08_h);
+  ret = spi_bus_add_device(SPI_HOST_PE, &spi_mcp23S08, &spi_mcp23S08_h);
   ESP_ERROR_CHECK(ret);
 
   // Configure ESP's MCP23S08 INT
@@ -258,7 +259,7 @@ void init_spi()
   spi_mcp4351.queue_size = 1;
   spi_mcp4351.pre_cb = NULL;
   spi_mcp4351.post_cb = NULL;
-  ret = spi_bus_add_device(HSPI_HOST, &spi_mcp4351, &spi_mcp4351_h);
+  ret = spi_bus_add_device(SPI_HOST_PE, &spi_mcp4351, &spi_mcp4351_h);
   ESP_ERROR_CHECK(ret);
 
   //wire_test_port_expander();

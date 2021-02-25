@@ -151,8 +151,7 @@ static const TRSKey trsKeys[] = {
   {0, 0}, //  VK_LGUI
   {0, 0}, //  VK_RGUI
   {64, 4}, //  VK_ESCAPE
-  {0, 0}, //  VK_PRINTSCREEN1
-  {0, 0}, //  VK_PRINTSCREEN2
+  {0, 0}, //  VK_PRINTSCREEN
   {0, 0}, //  VK_SYSREQ
   {0, 0}, //  VK_INSERT
   {0, 0}, //  VK_KP_INSERT
@@ -208,6 +207,46 @@ static const TRSKey trsKeys[] = {
   {0, 0}, //  VK_UMLAUT_u
   {0, 0}, //  VK_UMLAUT_o
   {0, 0}, //  VK_UMLAUT_a
+  {0, 0}, //  VK_CEDILLA_C
+  {0, 0}, //  VK_TILDE_n
+  {0, 0}, //  VK_TILDE_N
+  {0, 0}, //  VK_UPPER_a
+  {0, 0}, //  VK_ACUTE_a
+  {0, 0}, //  VK_ACUTE_i
+  {0, 0}, //  VK_ACUTE_o
+  {0, 0}, //  VK_ACUTE_u
+  {0, 0}, //  VK_UMLAUT_i
+  {0, 0}, //  VK_EXCLAIM_INV
+  {0, 0}, //  VK_QUESTION_INV
+  {0, 0}, //  VK_ACUTE_A
+  {0, 0}, //  VK_ACUTE_E
+  {0, 0}, //  VK_ACUTE_I
+  {0, 0}, //  VK_ACUTE_O
+  {0, 0}, //  VK_ACUTE_U
+  {0, 0}, //  VK_GRAVE_A
+  {0, 0}, //  VK_GRAVE_E
+  {0, 0}, //  VK_GRAVE_I
+  {0, 0}, //  VK_GRAVE_O
+  {0, 0}, //  VK_GRAVE_U
+  {0, 0}, //  VK_INTERPUNCT
+  {0, 0}, //  VK_DIAERESIS
+  {0, 0}, //  VK_UMLAUT_e
+  {0, 0}, //  VK_UMLAUT_A
+  {0, 0}, //  VK_UMLAUT_E
+  {0, 0}, //  VK_UMLAUT_I
+  {0, 0}, //  VK_UMLAUT_O
+  {0, 0}, //  VK_UMLAUT_U
+  {0, 0}, //  VK_CARET_a
+  {0, 0}, //  VK_CARET_e
+  {0, 0}, //  VK_CARET_i
+  {0, 0}, //  VK_CARET_o
+  {0, 0}, //  VK_CARET_u
+  {0, 0}, //  VK_CARET_A
+  {0, 0}, //  VK_CARET_E
+  {0, 0}, //  VK_CARET_I
+  {0, 0}, //  VK_CARET_O
+  {0, 0}, //  VK_CARET_U
+  {0, 0}, //  VK_ASCII
   {0, 0}  //  VK_LAST
 };
 

@@ -5,12 +5,12 @@
 
 static const uint8_t scroll_increment = 5;
 
-inline uint8_t* get_screen_pos0(window_t* wnd, uint8_t x, uint8_t y) {
+static uint8_t* get_screen_pos0(window_t* wnd, uint8_t x, uint8_t y) {
   return (screen.current + (wnd->y + y) * screen.width +
 		     (wnd->x + x));
 }
 
-inline uint8_t* get_screen_pos(window_t* wnd) {
+static uint8_t* get_screen_pos(window_t* wnd) {
   return get_screen_pos0(wnd, wnd->cx, wnd->cy);
 }
 

@@ -4,7 +4,7 @@
 //#define DISABLE_IO 1
 
 // SPI
-#define SPI_HOST HSPI_HOST
+#define SPI_HOST_PE HSPI_HOST
 #define SPI_PORT_EXP_SPEED_MHZ 20
 #define SPI_DIGI_POT_SPEED_MHZ 1
 
