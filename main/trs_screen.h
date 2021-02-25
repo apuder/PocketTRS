@@ -33,13 +33,17 @@ public:
 class TRSScreen {
 private:
   ScreenBuffer* top;
+  bool text_mode;
 
 public:
   TRSScreen();
   void push(ScreenBuffer* screenBuffer);
   void pop();
   void setExpanded(int flag);
+  void setTextMode(bool flag);
+  bool isTextMode();
   void drawChar(ushort pos, byte character);
+  void refresh();
 };
 
 extern TRSScreen trs_screen;

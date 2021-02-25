@@ -9,6 +9,7 @@
 #include "frehd.h"
 #include "config.h"
 #include "settings.h"
+#include "grafyx.h"
 
 
 static uint8_t modeimage = 8;
@@ -41,6 +42,18 @@ static void set_gpiob(uint8_t address)
 void z80_out(uint8_t address, uint8_t data, tstate_t z80_state_t_count)
 {
   switch(address) {
+   case 0x80:
+      grafyx_write_x(data);
+      return;
+    case 0x81:
+      grafyx_write_y(data);
+      return;
+    case 0x82:
+      grafyx_write_data(data);
+      return;
+    case 0x83:
+      grafyx_write_mode(data);
+      return;
     case 0xEC:
       port_0xec = data;
       // Fall through
@@ -99,6 +112,8 @@ void z80_out(uint8_t address, uint8_t data, tstate_t z80_state_t_count)
 uint8_t z80_in(uint8_t address, tstate_t z80_state_t_count)
 {
   switch(address) {
+    case 0x82:
+      return grafyx_read_data();
     case 0xec:
       return port_0xec;
 #ifdef DISABLE_IO

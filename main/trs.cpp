@@ -14,11 +14,13 @@
 
 #include "rom/model3-frehd.cpp-inc"
 
+#define RAM_SIZE (64 * 1024 - model3_frehd_rom_len)
+
 #define CYCLES_PER_TIMER ((unsigned int) (CLOCK_MHZ_M3 * 1000000 / TIMER_HZ_M3))
 
 static Z80Context z80ctx;
 
-static byte ram[64 * 1024 - model3_frehd_rom_len];
+static byte* ram;
 
 void poke_mem(uint16_t address, uint8_t data)
 {
@@ -63,6 +65,7 @@ static byte z80_io_read(int param, ushort address)
   address &= 0xff;
   switch(address) {
   case 31:
+  case 0x82:
   case 0xc0:
   case 0xc1:
   case 0xc2:
@@ -98,6 +101,10 @@ static void z80_io_write(int param, ushort address, byte data)
   address &= 0xff;
   switch (address) {
   case 31:
+  case 0x80:
+  case 0x81:
+  case 0x82:
+  case 0x83:
   case 0xc0:
   case 0xc1:
   case 0xc2:
@@ -171,7 +178,7 @@ static void sync_time_with_host()
 
 void z80_reset(ushort entryAddr)
 {
-  memset((void*) ram, 0, sizeof(ram));
+  memset((void*) ram, 0, RAM_SIZE);
   memset(&z80ctx, 0, sizeof(Z80Context));
   Z80RESET(&z80ctx);
   z80ctx.PC = entryAddr;
@@ -200,6 +207,8 @@ void z80_run()
 
 void init_trs()
 {
+  ram = (byte*) heap_caps_malloc(RAM_SIZE, MALLOC_CAP_8BIT);
+  assert(ram != NULL);
   ScreenBuffer* screenBuffer =
     new ScreenBuffer(&ram[0x3c00 - model3_frehd_rom_len], 64, 16);
   trs_screen.push(screenBuffer);

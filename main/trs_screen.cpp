@@ -121,6 +121,7 @@ void ScreenBuffer::drawChar(ushort pos, byte character)
 TRSScreen::TRSScreen()
 {
   top = nullptr;
+  text_mode = true;
 }
 
 void TRSScreen::push(ScreenBuffer* screenBuffer)
@@ -139,13 +140,38 @@ void TRSScreen::pop()
 void TRSScreen::setExpanded(int flag)
 {
   assert(top != nullptr);
-  top->setExpanded(flag);
+  if (text_mode) {
+    top->setExpanded(flag);
+  }
+}
+
+void TRSScreen::setTextMode(bool flag)
+{
+  text_mode = flag;
+  if (text_mode) {
+    top->refresh();
+  }
+}
+
+bool TRSScreen::isTextMode()
+{
+  return text_mode;
 }
 
 void TRSScreen::drawChar(ushort pos, byte character)
 {
   assert(top != nullptr);
-  top->drawChar(pos, character);
+  if (text_mode) {
+    top->drawChar(pos, character);
+  }
+}
+
+void TRSScreen::refresh()
+{
+  assert(top != nullptr);
+  if (text_mode) {
+    top->refresh();
+  }
 }
 
 TRSScreen trs_screen;

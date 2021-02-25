@@ -1,6 +1,7 @@
 #include "fabgl.h"
 #include "trs.h"
 #include "trs-keyboard.h"
+#include "trs_screen.h"
 #include "i2s.h"
 #include "cassette.h"
 #include "io.h"
@@ -68,7 +69,7 @@ void loop() {
     bool down;
     auto vk = keyboard->getNextVirtualKey(&down);
     //printf("VirtualKey = %s\n", keyboard->virtualKeyToString(vk));
-    if (down && vk == fabgl::VK_F3) {
+    if (down && vk == fabgl::VK_F3 && trs_screen.isTextMode()) {
       configure_pocket_trs();
     } else if (down && vk == fabgl::VK_F9) {
       z80_reset();
