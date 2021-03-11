@@ -21,14 +21,19 @@
 
 
 fabgl::VGA2Controller DisplayController;
-fabgl::Canvas        Canvas(&DisplayController);
-fabgl::PS2Controller PS2Controller;
+fabgl::Canvas         Canvas(&DisplayController);
+fabgl::PS2Controller  PS2Controller;
 
 void setup() {
-#if 0
-  printf("Size PSRAM: %d\n", ESP.getPsramSize());
-  printf("Heap size before VGA init: %d\n", ESP.getFreeHeap());
+#if 1
+  printf("Heap size before VGA init: %d\n", esp_get_free_heap_size());
+  printf("DRAM size before VGA init: %d\n", heap_caps_get_free_size(MALLOC_CAP_INTERNAL));
 #endif
+
+  DisplayController.begin(VGA_RED, VGA_GREEN, VGA_BLUE, VGA_HSYNC, VGA_VSYNC);
+  DisplayController.setResolution(VGA_512x192_60Hz);
+  DisplayController.enableBackgroundPrimitiveExecution(false);
+  DisplayController.enableBackgroundPrimitiveTimeout(false);
 
   init_events();
   init_trs_io();
@@ -40,19 +45,17 @@ void setup() {
   init_settings();
   init_wifi();
   vTaskDelay(5000 / portTICK_PERIOD_MS);
-  DisplayController.begin(VGA_RED, VGA_GREEN, VGA_BLUE, VGA_HSYNC, VGA_VSYNC);
-  DisplayController.setResolution(VGA_512x192_60Hz);
-  DisplayController.enableBackgroundPrimitiveExecution(false);
-  DisplayController.enableBackgroundPrimitiveTimeout(false);
   settingsCalibration.setScreenOffset();
+  #if 0
   Canvas.setBrushColor(Color::Black);
   Canvas.setGlyphOptions(GlyphOptions().FillBackground(true));
   Canvas.setPenColor(Color::White);
+  #endif
   PS2Controller.begin(PS2Preset::KeyboardPort0, KbdMode::CreateVirtualKeysQueue);
 
-#if 0
-  printf("Heap size after VGA init: %d\n", ESP.getFreeHeap());
-  printf("Free heap: %d\n", esp_get_free_heap_size());
+#if 1
+  printf("Heap size after VGA init: %d\n", esp_get_free_heap_size());
+  printf("DRAM size after VGA init: %d\n", heap_caps_get_free_size(MALLOC_CAP_INTERNAL));
 #endif
   Canvas.clear();
 }

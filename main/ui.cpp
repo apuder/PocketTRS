@@ -83,11 +83,11 @@ void configure_pocket_trs()
   bool show_from_left = false;
   bool exit = false;
   
-  screenBuffer = new ScreenBuffer(64, 16);
+  screenBuffer = new ScreenBuffer(MODE_TEXT_64x16);
   trs_screen.push(screenBuffer);
   screenBuffer->copyBufferFrom(screenBuffer->getNext());
 
-  ScreenBuffer* backgroundBuffer = new ScreenBuffer(64, 16);
+  ScreenBuffer* backgroundBuffer = new ScreenBuffer(MODE_TEXT_64x16);
   trs_screen.push(backgroundBuffer);
 
   set_screen(screenBuffer->getBuffer(), backgroundBuffer->getBuffer(),

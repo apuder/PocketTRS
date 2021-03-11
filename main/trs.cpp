@@ -1,6 +1,7 @@
 
 #include "z80.h"
 #include "trs_screen.h"
+#include "trs_memory.h"
 #include "trs.h"
 #include "i2s.h"
 #include "io.h"
@@ -12,38 +13,21 @@
 #include <string.h>
 
 
-#include "rom/model3-frehd.cpp-inc"
-
-#define RAM_SIZE (64 * 1024 - model3_frehd_rom_len)
-
 #define CYCLES_PER_TIMER ((unsigned int) (CLOCK_MHZ_M3 * 1000000 / TIMER_HZ_M3))
+
+int trs_model = 4;
 
 static Z80Context z80ctx;
 
-static byte* ram;
 
 void poke_mem(uint16_t address, uint8_t data)
 {
-  if (address < model3_frehd_rom_len) {
-    // Trying to write to ROM
-    return;
-  }
-  ram[address - model3_frehd_rom_len] = data;
-  if ((address >= 0x3c00) && (address < (0x3c00 + 64 * 16))) {
-    // Video RAM access
-    trs_screen.drawChar(address - 0x3c00, data);
-  }
+  mem_write(address, data);
 }
 
 uint8_t peek_mem(uint16_t address)
 {
-  if (address < model3_frehd_rom_len) {
-    // Read from ROM
-    return model3_frehd_rom[address];
-  } else {
-    // Access RAM
-    return ram[address - model3_frehd_rom_len];
-  }
+  return mem_read(address);
 }
 
 //------------------------------------------------------------------
@@ -88,9 +72,7 @@ static byte z80_io_read(int param, ushort address)
     return z80_in(address, total_tstate_count);
   default:
 #if 0
-    Serial.print("in(");
-    Serial.print(address);
-    Serial.println(")");
+    printf("in(0x%02x)\n", address);
 #endif
     return 255;
   }
@@ -105,6 +87,10 @@ static void z80_io_write(int param, ushort address, byte data)
   case 0x81:
   case 0x82:
   case 0x83:
+  case 0x84:
+  case 0x85:
+  case 0x86:
+  case 0x87:
   case 0xc0:
   case 0xc1:
   case 0xc2:
@@ -128,13 +114,16 @@ static void z80_io_write(int param, ushort address, byte data)
   case 0xff:
     z80_out(address, data, total_tstate_count);
     break;
+
+    //XXX
+    case 0x8c:
+    case 0x8d:
+    case 0x8e:
+      printf("out(0x%02x): 0x%02x\n", address, data);
+      break;
   default:
 #if 0
-    Serial.print("out(");
-    Serial.print(address);
-    Serial.print(",");
-    Serial.print(data);
-    Serial.println(")");
+    printf("out(0x%02x): 0x%02x\n", address, data);
 #endif
     break;
   }
@@ -178,7 +167,7 @@ static void sync_time_with_host()
 
 void z80_reset(ushort entryAddr)
 {
-  memset((void*) ram, 0, RAM_SIZE);
+  mem_init();
   memset(&z80ctx, 0, sizeof(Z80Context));
   Z80RESET(&z80ctx);
   z80ctx.PC = entryAddr;
@@ -207,9 +196,6 @@ void z80_run()
 
 void init_trs()
 {
-  ram = (byte*) heap_caps_malloc(RAM_SIZE, MALLOC_CAP_8BIT);
-  assert(ram != NULL);
-  ScreenBuffer* screenBuffer =
-    new ScreenBuffer(&ram[0x3c00 - model3_frehd_rom_len], 64, 16);
+  ScreenBuffer* screenBuffer = new ScreenBuffer(MODE_TEXT_64x16);
   trs_screen.push(screenBuffer);
 }

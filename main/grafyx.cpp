@@ -2,9 +2,10 @@
 #include "trs_screen.h"
 #include "grafyx.h"
 #include "fabgl.h"
+#include "esp_attr.h"
 
 
-extern fabgl::VGA2Controller DisplayController;
+
 extern fabgl::Canvas Canvas;
 
 
@@ -14,7 +15,7 @@ extern fabgl::Canvas Canvas;
 #define G_XSIZE 128
 #define G_YSIZE 256
 
-static unsigned char grafyx_unscaled[G_YSIZE][G_XSIZE];
+static unsigned char grafyx_unscaled[G_YSIZE][G_XSIZE] EXT_RAM_ATTR;
 static unsigned char grafyx_microlabs = 0;
 static unsigned char grafyx_x = 0, grafyx_y = 0, grafyx_mode = 0;
 static unsigned char grafyx_enable = 0;
@@ -39,11 +40,15 @@ static int col_chars = 16;
 static void grafyx_write_byte(int x, int y, char byte)
 {
   /* Save new byte in local memory */
+  assert(x < G_XSIZE && y < G_YSIZE);
   grafyx_unscaled[y][x] = byte;
 
   if (grafyx_enable) {
+    int const screen_x = ((x - grafyx_xoffset + G_XSIZE) % G_XSIZE);
+    int const screen_y = ((y - grafyx_yoffset + G_YSIZE) % G_YSIZE);
+
     /* Draw new byte */
-    Canvas.drawGlyph(x * 8, y, 8, 1, (const uint8_t*) &byte);
+    Canvas.drawGlyph(screen_x * 8, screen_y, 8, 1, (const uint8_t*) &byte);
   }
 }
 
@@ -105,14 +110,6 @@ void grafyx_write_mode(int value)
   grafyx_mode = value;
 
   if (old_enable != grafyx_enable) {
-    trs_screen.setTextMode(!grafyx_enable);
-    if (grafyx_enable) {
-      DisplayController.setResolution(VGA_640x240_60Hz);
-      Canvas.setGlyphOptions(GlyphOptions().FillBackground(true));
-    } else {
-      DisplayController.setResolution(VGA_512x192_60Hz);
-      Canvas.setGlyphOptions(GlyphOptions().FillBackground(true));
-      trs_screen.refresh();
-    }
+    trs_screen.enableGrafyxMode(grafyx_enable);
   }
 }

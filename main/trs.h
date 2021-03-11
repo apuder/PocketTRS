@@ -10,6 +10,8 @@ typedef unsigned long long tstate_t;
 #define TIMER_HZ_M3 30
 #define CLOCK_MHZ_M3 2.02752
 
+extern int trs_model;
+
 void poke_mem(uint16_t address, uint8_t data);
 uint8_t peek_mem(uint16_t address);
 void z80_reset(uint16_t entryAddr);
