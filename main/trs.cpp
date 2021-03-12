@@ -193,9 +193,3 @@ void z80_run()
     z80ctx.int_req = 1;
   }
 }
-
-void init_trs()
-{
-  ScreenBuffer* screenBuffer = new ScreenBuffer(MODE_TEXT_64x16);
-  trs_screen.push(screenBuffer);
-}

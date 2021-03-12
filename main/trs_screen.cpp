@@ -37,6 +37,7 @@ ScreenBuffer::ScreenBuffer(uint8_t mode)
   this->font = nullptr;
   this->next = nullptr;
   setMode(mode);
+  clear();
 }
 
 ScreenBuffer::~ScreenBuffer()
@@ -50,25 +51,29 @@ void ScreenBuffer::setMode(uint8_t mode)
   bool changeResolution = false;
   uint8_t changes = mode ^ currentMonitorMode;
 
-  if ((changes & MODE_TEXT_64x16) && (mode & MODE_TEXT_64x16)) {
+  if (mode & MODE_TEXT_64x16) {
     width = 64;
     height = 16;
     screen_chars = 64 * 16;
     char_width = TRS_M3_CHAR_WIDTH;
     char_height = TRS_M3_CHAR_HEIGHT;
     font = (byte*) font_m3;
-    changeResolution = true;
+    if (changes & MODE_TEXT_64x16) {
+      changeResolution = true;
+    }
   }
 
-  if ((changes & MODE_TEXT_80x24) && (mode & MODE_TEXT_80x24)) {
+  if (mode & MODE_TEXT_80x24) {
     width = 80;
     height = 24;
     screen_chars = 80 * 24;
     char_width = TRS_M4_CHAR_WIDTH;
     char_height = TRS_M4_CHAR_HEIGHT;
     font = (byte*) font_m4;
-    changeResolution = true;
-    hires = true;
+    if (changes & MODE_TEXT_80x24) {
+      changeResolution = true;
+      hires = true;
+    }
   }
 
   if (changes & MODE_GRAFYX) {
@@ -118,8 +123,13 @@ ScreenBuffer* ScreenBuffer::getNext()
 
 void ScreenBuffer::copyBufferFrom(ScreenBuffer* buf)
 {
-  assert(next != nullptr && width == buf->width && height == buf->height);
+  assert(buf != nullptr && width == buf->width && height == buf->height);
   memcpy(screenBuffer, buf->screenBuffer, screen_chars);
+}
+
+void ScreenBuffer::clear()
+{
+  memset(screenBuffer, 0, screen_chars);
 }
 
 void ScreenBuffer::refresh()
@@ -195,7 +205,7 @@ void TRSScreen::pop()
 {
   ScreenBuffer* tmp = top;
   top = top->getNext();
-  mode = top->getMode();
+  mode = (top == nullptr) ? 0 : top->getMode();
   delete tmp;
 }
 
@@ -238,6 +248,12 @@ byte TRSScreen::getChar(ushort pos)
 {
   assert(top != nullptr);
   return top->getChar(pos);
+}
+
+void TRSScreen::clear()
+{
+  assert(top != nullptr);
+  top->clear();
 }
 
 void TRSScreen::refresh()

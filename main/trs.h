@@ -18,6 +18,4 @@ void z80_reset(uint16_t entryAddr);
 void z80_reset();
 void z80_run();
 
-void init_trs();
-
 #endif

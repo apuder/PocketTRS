@@ -36,6 +36,7 @@ public:
   void setNext(ScreenBuffer* next);
   ScreenBuffer* getNext();
   void copyBufferFrom(ScreenBuffer* buf);
+  void clear();
   void refresh();
   void update(uint8_t* from, uint8_t* to);
   void setExpanded(int flag);
@@ -59,6 +60,7 @@ public:
   bool isTextMode();
   void drawChar(ushort pos, byte character);
   byte getChar(ushort pos);
+  void clear();
   void refresh();
 };
 
