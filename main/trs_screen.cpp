@@ -93,6 +93,7 @@ void ScreenBuffer::setMode(uint8_t mode)
     const char* modline = hires ? VGA_640x240_60Hz : VGA_512x192_60Hz;
 
     DisplayController.setResolution(modline);
+    Canvas.reset();
     Canvas.setBrushColor(Color::Black);
     Canvas.setGlyphOptions(GlyphOptions().FillBackground((mode & MODE_GRAFYX) == 0));
     Canvas.setPenColor(Color::White);
