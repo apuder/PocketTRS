@@ -1,6 +1,7 @@
 
 #include "trs.h"
 #include "trs-keyboard.h"
+#include "fabgl.h"
 
 #define ADD_SHIFT_KEY 0x100
 #define REMOVE_SHIFT_KEY 0x200
@@ -265,7 +266,13 @@ int trs_kb_mem_read(int address)
 
 void process_key(int vk, bool down)
 {
+  static bool shiftPressed = false;
+  if (vk == fabgl::VK_LSHIFT || vk == fabgl::VK_RSHIFT) {
+    shiftPressed = down;
+  }
+  
   int offset = trsKeys[vk].offset;
+
   if (offset != 0) {
     bool addShiftKey = trsKeys[vk].mask & ADD_SHIFT_KEY;
     bool removeShiftKey = trsKeys[vk].mask & REMOVE_SHIFT_KEY;
@@ -273,15 +280,18 @@ void process_key(int vk, bool down)
     if (down) {
       keyb_buffer[offset - 1] |= mask;
       if (addShiftKey) {
-        keyb_buffer[7] = 1;
+        keyb_buffer[7] |= 1;
       }
       if (removeShiftKey) {
-        keyb_buffer[7] = 1;
+        keyb_buffer[7] &= ~1;
       }
     } else {
       keyb_buffer[offset - 1] &= ~mask;
-      if (addShiftKey) {
-        keyb_buffer[7] = 1;
+      if (addShiftKey && !shiftPressed) {
+        keyb_buffer[7] &= ~1;
+      }
+      if (removeShiftKey && shiftPressed) {
+        keyb_buffer[7] |= 1;
       }
     }
   }
