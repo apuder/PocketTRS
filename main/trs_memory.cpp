@@ -374,7 +374,11 @@ int mem_read(unsigned int address)
 	//if (address == PRINTER_ADDRESS)	return trs_printer_read();
 	if (address < trs_rom_size) return rom[address];
 	if (address >= VIDEO_START) {
-	  return trs_screen.getChar(address - VIDEO_START);
+	  byte character;
+          if (trs_screen.getChar(address - VIDEO_START, character)) {
+            return character;
+	  }
+	  return memory[address];
 	  //return grafyx_m3_read_byte(address - VIDEO_START);
 	}
 	if (address >= KEYBOARD_START) return trs_kb_mem_read(address);
@@ -388,7 +392,11 @@ int mem_read(unsigned int address)
 	//if (address == PRINTER_ADDRESS) return trs_printer_read();
 	if (address < trs_rom_size) return rom[address];
 	if (address >= VIDEO_START) {
-	    return trs_screen.getChar(address + video_offset);
+	  byte character;
+	  if (trs_screen.getChar(address + video_offset, character)) {
+	    return character;
+	  }
+	  return memory[address];
 	}
 	if (address >= KEYBOARD_START) return trs_kb_mem_read(address);
 	return 0xff;
@@ -405,7 +413,11 @@ int mem_read(unsigned int address)
 	    return memory[address + bank_offset[address >> 15]];
 	}
 	if (address >= VIDEO_START) {
-	    return trs_screen.getChar(address + video_offset);
+	  byte character;
+	  if (trs_screen.getChar(address + video_offset, character)) {
+            return character;
+	  }
+	  return memory[address];
 	}
 	if (address >= KEYBOARD_START) return trs_kb_mem_read(address);
 	return 0xff;
@@ -417,7 +429,13 @@ int mem_read(unsigned int address)
 	    assert(address + bank_offset[address >> 15] < sizeof(memory));
 	    return memory[address + bank_offset[address >> 15]];
 	}
-	if (address >= 0xf800) return trs_screen.getChar(address-0xf800);
+	if (address >= 0xf800) {
+	  byte character;
+	  if (trs_screen.getChar(address-0xf800, character)) {
+	    return character;
+	  }
+	  return memory[address];
+	}
 	return trs_kb_mem_read(address);
 
       case 0x43: /* Model 4 map 3 */
@@ -453,6 +471,7 @@ void mem_write(unsigned int address, int value)
 	if (address >= RAM_START) {
 	    memory[address] = value;
 	} else if (address >= VIDEO_START) {
+	    memory[address] = value;
 	    int vaddr = address + video_offset;
 	    //	    if (grafyx_m3_write_byte(vaddr, value)) return;
 	    trs_screen.drawChar(vaddr, value);
@@ -468,7 +487,8 @@ void mem_write(unsigned int address, int value)
 	    assert(address + bank_offset[address >> 15] < sizeof(memory));
 	    memory[address + bank_offset[address >> 15]] = value;
 	} else if (address >= VIDEO_START) {
-	    trs_screen.drawChar(address+ video_offset, value);
+	    memory[address] = value;
+	    trs_screen.drawChar(address + video_offset, value);
 	} else if (address == PRINTER_ADDRESS) {
 	  //trs_printer_write(value);
 	}
@@ -481,7 +501,7 @@ void mem_write(unsigned int address, int value)
 	    assert(address + bank_offset[address >> 15] < sizeof(memory));
 	    memory[address + bank_offset[address >> 15]] = value;
 	} else if (address >= VIDEO_START) {
-		//printf(">>>>>>>>>>> %d\n", address + video_offset);
+	    memory[address] = value;
 	    trs_screen.drawChar(address + video_offset, value);
 	}
 	break;
@@ -493,6 +513,7 @@ void mem_write(unsigned int address, int value)
 	    assert(address + bank_offset[address >> 15] < sizeof(memory));
 	    memory[address + bank_offset[address >> 15]] = value;
 	} else if (address >= 0xf800) {
+	    memory[address] = value;
             trs_screen.drawChar(address - 0xf800, value);
 	}
 	break;

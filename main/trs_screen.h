@@ -42,7 +42,7 @@ public:
   void setExpanded(int flag);
   int isExpandedMode();
   void drawChar(ushort pos, byte character);
-  byte getChar(ushort pos);
+  bool getChar(ushort pos, byte& character);
 };
 
 class TRSScreen {
@@ -52,6 +52,7 @@ private:
 
 public:
   TRSScreen();
+  void init();
   void push(ScreenBuffer* screenBuffer);
   void pop();
   void setMode(uint8_t mode);
@@ -59,7 +60,7 @@ public:
   void setExpanded(int flag);
   bool isTextMode();
   void drawChar(ushort pos, byte character);
-  byte getChar(ushort pos);
+  bool getChar(ushort pos, byte& character);
   void clear();
   void refresh();
 };

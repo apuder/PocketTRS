@@ -7,7 +7,6 @@
 #include "io.h"
 #include "ui.h"
 #include "settings.h"
-#include "config.h"
 
 #include "led.h"
 #include "wifi.h"
@@ -20,8 +19,6 @@
 #include "ntp_sync.h"
 
 
-fabgl::VGA2Controller DisplayController;
-fabgl::Canvas         Canvas(&DisplayController);
 fabgl::PS2Controller  PS2Controller;
 
 #include "splash"
@@ -40,16 +37,6 @@ void setup() {
   printf("DRAM size before VGA init: %d\n", heap_caps_get_free_size(MALLOC_CAP_INTERNAL));
 #endif
 
-  DisplayController.begin(VGA_RED, VGA_GREEN, VGA_BLUE, VGA_HSYNC, VGA_VSYNC);
-  DisplayController.setResolution(VGA_512x192_60Hz);
-  DisplayController.enableBackgroundPrimitiveExecution(false);
-  DisplayController.enableBackgroundPrimitiveTimeout(false);
-  Canvas.setBrushColor(Color::Black);
-  Canvas.setGlyphOptions(GlyphOptions().FillBackground(true));
-  Canvas.setPenColor(Color::White);
-
-  show_splash();
-
   init_events();
   init_trs_io();
   init_storage();
@@ -57,6 +44,8 @@ void setup() {
   init_io();
   init_settings();
   init_wifi();
+  trs_screen.init();
+  show_splash();
   vTaskDelay(5000 / portTICK_PERIOD_MS);
   settingsCalibration.setScreenOffset();
   PS2Controller.begin(PS2Preset::KeyboardPort0, KbdMode::CreateVirtualKeysQueue);

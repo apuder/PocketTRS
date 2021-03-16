@@ -4,6 +4,7 @@
 #include "trs_screen.h"
 #include "fabgl.h"
 #include "spi.h"
+#include "config.h"
 #include "settings.h"
 
 
@@ -21,10 +22,10 @@
 
 //----------------------------------------------------------------
 
-extern fabgl::VGA2Controller DisplayController;
-extern fabgl::Canvas Canvas;
+fabgl::VGA2Controller DisplayController;
+fabgl::Canvas         Canvas(&DisplayController);
 
-uint8_t ScreenBuffer::currentMonitorMode = 0;//MODE_TEXT_64x16;
+uint8_t ScreenBuffer::currentMonitorMode = MODE_TEXT_64x16;
 
 ScreenBuffer::ScreenBuffer(uint8_t mode)
 {
@@ -95,9 +96,10 @@ void ScreenBuffer::setMode(uint8_t mode)
     DisplayController.setResolution(modline);
     Canvas.reset();
     Canvas.setBrushColor(Color::Black);
-    Canvas.setGlyphOptions(GlyphOptions().FillBackground((mode & MODE_GRAFYX) == 0));
+    Canvas.setGlyphOptions(GlyphOptions().FillBackground(true));
     Canvas.setPenColor(Color::White);
     Canvas.clear();
+    clear();
   }
   currentMonitorMode = mode;
 }
@@ -130,7 +132,7 @@ void ScreenBuffer::copyBufferFrom(ScreenBuffer* buf)
 
 void ScreenBuffer::clear()
 {
-  memset(screenBuffer, 0, screen_chars);
+  memset(screenBuffer, ' ', MAX_TRS_SCREEN_WIDTH * MAX_TRS_SCREEN_HEIGHT);
 }
 
 void ScreenBuffer::refresh()
@@ -182,9 +184,13 @@ void ScreenBuffer::drawChar(ushort pos, byte character)
     font, character);
 }
 
-byte ScreenBuffer::getChar(ushort pos)
+bool ScreenBuffer::getChar(ushort pos, byte& character)
 {
-  return screenBuffer[pos];
+  if (pos < screen_chars) {
+    character = screenBuffer[pos];
+    return true;
+  }
+  return false;
 }
 
 //----------------------------------------------------------------
@@ -193,6 +199,18 @@ TRSScreen::TRSScreen()
 {
   top = nullptr;
   mode = 0;
+}
+
+void TRSScreen::init()
+{
+  DisplayController.begin(VGA_RED, VGA_GREEN, VGA_BLUE, VGA_HSYNC, VGA_VSYNC);
+  DisplayController.setResolution(VGA_512x192_60Hz);
+  DisplayController.enableBackgroundPrimitiveExecution(false);
+  DisplayController.enableBackgroundPrimitiveTimeout(false);
+
+  Canvas.setBrushColor(Color::Black);
+  Canvas.setGlyphOptions(GlyphOptions().FillBackground(true));
+  Canvas.setPenColor(Color::White);
 }
 
 void TRSScreen::push(ScreenBuffer* screenBuffer)
@@ -245,10 +263,10 @@ void TRSScreen::drawChar(ushort pos, byte character)
   //}
 }
 
-byte TRSScreen::getChar(ushort pos)
+bool TRSScreen::getChar(ushort pos, byte& character)
 {
   assert(top != nullptr);
-  return top->getChar(pos);
+  return top->getChar(pos, character);
 }
 
 void TRSScreen::clear()
@@ -260,9 +278,7 @@ void TRSScreen::clear()
 void TRSScreen::refresh()
 {
   assert(top != nullptr);
-  if (isTextMode()) {
-    top->refresh();
-  }
+  top->refresh();
 }
 
 TRSScreen trs_screen;
