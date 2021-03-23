@@ -82,16 +82,17 @@ void configure_pocket_trs()
 {
   bool show_from_left = false;
   bool exit = false;
-  
-  screenBuffer = new ScreenBuffer(MODE_TEXT_64x16);
+  uint8_t mode = trs_screen.getMode();
+
+  screenBuffer = new ScreenBuffer(mode);
   trs_screen.push(screenBuffer);
   screenBuffer->copyBufferFrom(screenBuffer->getNext());
 
-  ScreenBuffer* backgroundBuffer = new ScreenBuffer(MODE_TEXT_64x16);
+  ScreenBuffer* backgroundBuffer = new ScreenBuffer(mode);
   trs_screen.push(backgroundBuffer);
 
   set_screen(screenBuffer->getBuffer(), backgroundBuffer->getBuffer(),
-	     64, 16);
+	     screenBuffer->getWidth(), screenBuffer->getHeight());
 
   set_screen_callback(screen_update);
   set_keyboard_callback(get_next_key);

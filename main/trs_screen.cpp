@@ -109,6 +109,16 @@ uint8_t ScreenBuffer::getMode()
   return currentMonitorMode;
 }
 
+uint8_t ScreenBuffer::getWidth()
+{
+  return width;
+}
+
+uint8_t ScreenBuffer::getHeight()
+{
+  return height;
+}
+
 uint8_t* ScreenBuffer::getBuffer()
 {
   return screenBuffer;
@@ -232,6 +242,21 @@ void TRSScreen::setMode(uint8_t mode)
 {
   this->mode = mode;
   top->setMode(mode);
+}
+
+uint8_t TRSScreen::getMode()
+{
+  return mode;
+}
+
+uint8_t TRSScreen::getWidth()
+{
+  return top->getWidth();
+}
+
+uint8_t TRSScreen::getHeight()
+{
+  return top->getHeight();
 }
 
 void TRSScreen::enableGrafyxMode(bool enable)

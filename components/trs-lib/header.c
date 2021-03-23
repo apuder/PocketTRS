@@ -12,7 +12,7 @@ static void set_pixel(uint8_t x, uint8_t y) {
   uint8_t b, ox, oy;
   uint8_t* p;
 
-  p = screen.current + (y / 3) * 64 + (x / 2);
+  p = screen.current + (y / 3) * screen.width + (x / 2);
   b = *p;
   if (b < 128 || b > 191) {
     b = 128;

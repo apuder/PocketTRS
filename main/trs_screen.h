@@ -33,6 +33,8 @@ public:
   void setMode(uint8_t mode);
   uint8_t getMode();
   uint8_t* getBuffer();
+  uint8_t getWidth();
+  uint8_t getHeight();
   void setNext(ScreenBuffer* next);
   ScreenBuffer* getNext();
   void copyBufferFrom(ScreenBuffer* buf);
@@ -56,6 +58,9 @@ public:
   void push(ScreenBuffer* screenBuffer);
   void pop();
   void setMode(uint8_t mode);
+  uint8_t getMode();
+  uint8_t getWidth();
+  uint8_t getHeight();
   void enableGrafyxMode(bool enable);
   void setExpanded(int flag);
   bool isTextMode();
