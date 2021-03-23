@@ -94,6 +94,8 @@ void z80_out(uint8_t address, uint8_t data, tstate_t z80_state_t_count)
       modeimage = data;
       trs_cassette_motor((modeimage & 0x02) >> 1, z80_state_t_count);
       trs_screen.setExpanded((data & 0x04) >> 2);
+      if (trs_model >= 4)
+        trs_timer_speed((modeimage & 0x40) >> 6);
       return;
     case 0xff:
       trs_cassette_out(data & 3, z80_state_t_count);

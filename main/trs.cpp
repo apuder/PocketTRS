@@ -13,12 +13,24 @@
 #include <string.h>
 
 
-#define CYCLES_PER_TIMER ((unsigned int) (CLOCK_MHZ_M3 * 1000000 / TIMER_HZ_M3))
+#define CYCLES_PER_TIMER_M3 ((unsigned int) (CLOCK_MHZ_M3 * 1000000 / TIMER_HZ_M3))
+#define CYCLES_PER_TIMER_M4 ((unsigned int) (CLOCK_MHZ_M4 * 1000000 / TIMER_HZ_M4))
+
+static unsigned int cycles_per_timer = CYCLES_PER_TIMER_M3;
+static unsigned int timer_hz = TIMER_HZ_M3;
 
 int trs_model = 4;
 
 static Z80Context z80ctx;
 
+
+void trs_timer_speed(int fast)
+{
+  if (trs_model == 3) fast = 0;
+  timer_hz = fast ? TIMER_HZ_M4 : TIMER_HZ_M3;
+  cycles_per_timer = fast ? CYCLES_PER_TIMER_M4 : CYCLES_PER_TIMER_M3;
+  printf("Change CPU speed: %d (%d/%d)\n", fast, timer_hz, cycles_per_timer);
+}
 
 void poke_mem(uint16_t address, uint8_t data)
 {
@@ -146,16 +158,18 @@ static int get_ticks()
 
 static void sync_time_with_host()
 {
-  int curtime;
-  int deltatime;
-  static int lasttime = 0;
+  unsigned int curtime;
+  unsigned int deltatime;
+  static unsigned int lasttime = 0;
+  static int count = 0;
 
-  deltatime = 1000 / TIMER_HZ_M3;
+  deltatime = 1000 / timer_hz;
 
   curtime = get_ticks();
 
   if (lasttime + deltatime > curtime) {
     vTaskDelay((lasttime + deltatime - curtime) / portTICK_PERIOD_MS);
+    //if ((count++ % 100) == 0) printf("DELAY: %d\n", (lasttime + deltatime - curtime) / portTICK_PERIOD_MS);
   }
   curtime = get_ticks();
 
@@ -187,9 +201,9 @@ void z80_run()
   unsigned last_tstate_count = z80ctx.tstates;
   Z80Execute(&z80ctx);
   total_tstate_count += z80ctx.tstates - last_tstate_count;
-  if (z80ctx.tstates >= CYCLES_PER_TIMER) {
+  if (z80ctx.tstates >= cycles_per_timer) {
     sync_time_with_host();
-    z80ctx.tstates -=  CYCLES_PER_TIMER;
+    z80ctx.tstates -=  cycles_per_timer;
     z80ctx.int_req = 1;
   }
 }
