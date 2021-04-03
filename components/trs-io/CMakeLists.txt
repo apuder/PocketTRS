@@ -23,8 +23,9 @@ idf_component_register(SRC_DIRS ${TRS_IO}/libsmb2/lib
                                     ${TRS_IO}/retrostore/include
                                     ${TRS_IO}/trs-fs/include
                                     ${TRS_IO}/tcpip/include
-                       EMBED_FILES ${TRS_IO}/trs-io/index.html
-                                   ${TRS_IO}/retrostore/loader_basic.cmd
+                       EMBED_TXTFILES ${TRS_IO}/trs-io/index.html
+                                      ${TRS_IO}/trs-io/printer.html
+                       EMBED_FILES ${TRS_IO}/retrostore/loader_basic.cmd
                                    ${TRS_IO}/retrostore/loader_cmd.bin
                                    ${TRS_IO}/retrostore/rsclient.cmd
                        REQUIRES main

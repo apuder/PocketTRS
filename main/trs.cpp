@@ -29,7 +29,6 @@ void trs_timer_speed(int fast)
   if (trs_model == 3) fast = 0;
   timer_hz = fast ? TIMER_HZ_M4 : TIMER_HZ_M3;
   cycles_per_timer = fast ? CYCLES_PER_TIMER_M4 : CYCLES_PER_TIMER_M3;
-  printf("Change CPU speed: %d (%d/%d)\n", fast, timer_hz, cycles_per_timer);
 }
 
 void poke_mem(uint16_t address, uint8_t data)
@@ -80,6 +79,10 @@ static byte z80_io_read(int param, ushort address)
   case 0xcf:
   case 0xe0:
   case 0xec:
+  case 0xF8:
+  case 0xF9:
+  case 0xFA:
+  case 0xFB:
   case 0xff:
     return z80_in(address, total_tstate_count);
   default:
@@ -123,6 +126,10 @@ static void z80_io_write(int param, ushort address, byte data)
   case 0xed:
   case 0xee:
   case 0xef:
+  case 0xF8:
+  case 0xF9:
+  case 0xFA:
+  case 0xFB:
   case 0xff:
     z80_out(address, data, total_tstate_count);
     break;

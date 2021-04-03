@@ -7,6 +7,7 @@
 #include "spi.h"
 #include "i2s.h"
 #include "trs-io.h"
+#include "wifi.h"
 #include "frehd.h"
 #include "config.h"
 #include "settings.h"
@@ -97,6 +98,12 @@ void z80_out(uint8_t address, uint8_t data, tstate_t z80_state_t_count)
       if (trs_model >= 4)
         trs_timer_speed((modeimage & 0x40) >> 6);
       return;
+    case 0xF8:
+    case 0xF9:
+    case 0xFA:
+    case 0xFB:
+      trs_printer_write(data);
+      return;
     case 0xff:
       trs_cassette_out(data & 3, z80_state_t_count);
       return;
@@ -168,6 +175,11 @@ uint8_t z80_in(uint8_t address, tstate_t z80_state_t_count)
       }
     }
 #endif
+    case 0xF8:
+    case 0xF9:
+    case 0xFA:
+    case 0xFB:
+      return trs_printer_read();
     case 0xff:
       return (modeimage & 0x7e) | trs_cassette_in(z80_state_t_count);
   }
