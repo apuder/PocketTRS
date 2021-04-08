@@ -8,6 +8,7 @@
 #include "ui.h"
 #include "settings.h"
 
+#include "button.h"
 #include "led.h"
 #include "wifi.h"
 #include "ota.h"
@@ -37,6 +38,10 @@ void setup() {
   printf("DRAM size before VGA init: %d\n", heap_caps_get_free_size(MALLOC_CAP_INTERNAL));
 #endif
 
+  init_button();
+  if (is_button_pressed()) {
+    // Run hardware tests
+  }
   init_events();
   init_trs_io();
   init_storage();
@@ -63,6 +68,11 @@ void loop() {
   auto keyboard = PS2Controller.keyboard();
 
   z80_run();
+
+  if (is_button_short_press()) {
+    z80_reset();
+  }
+
   if (keyboard == nullptr || !keyboard->isKeyboardAvailable()) {
     return;
   }
