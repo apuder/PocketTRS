@@ -44,7 +44,7 @@ void setup() {
   show_splash();
   init_wifi();
   vTaskDelay(5000 / portTICK_PERIOD_MS);
-  settingsCalibration.setScreenOffset();
+  //settingsCalibration.setScreenOffset();
   PS2Controller.begin(PS2Preset::KeyboardPort0, KbdMode::CreateVirtualKeysQueue);
 
   z80_reset(0);

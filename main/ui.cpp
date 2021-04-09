@@ -20,7 +20,7 @@ extern "C" {
 
 static menu_item_t main_menu_items[] = {
   {MENU_CONFIGURE, "Configure"},
-  {MENU_CALIBRATE, "Calibrate Screen"},
+  //{MENU_CALIBRATE, "Calibrate Screen"},
   {MENU_STATUS, "Status"},
   {MENU_RESET, "Reset Settings"},
   {MENU_HELP, "Help"},
