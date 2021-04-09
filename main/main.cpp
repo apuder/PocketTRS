@@ -7,6 +7,7 @@
 #include "io.h"
 #include "ui.h"
 #include "settings.h"
+#include "splash.h"
 
 #include "button.h"
 #include "led.h"
@@ -22,15 +23,6 @@
 
 fabgl::PS2Controller  PS2Controller;
 
-#include "splash"
-
-static void show_splash()
-{
-  ScreenBuffer* screenBuffer = new ScreenBuffer(MODE_TEXT_64x16);
-  memcpy(screenBuffer->getBuffer(), splash, 1024);
-  trs_screen.push(screenBuffer);
-  trs_screen.refresh();
-}
 
 void setup() {
 #if 1
@@ -48,9 +40,9 @@ void setup() {
   init_i2s();
   init_io();
   init_settings();
-  init_wifi();
   trs_screen.init();
   show_splash();
+  init_wifi();
   vTaskDelay(5000 / portTICK_PERIOD_MS);
   settingsCalibration.setScreenOffset();
   PS2Controller.begin(PS2Preset::KeyboardPort0, KbdMode::CreateVirtualKeysQueue);
