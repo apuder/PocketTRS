@@ -25,6 +25,7 @@ private:
   uint8_t       char_width;
   uint8_t       char_height;
   byte*         font;
+  bool          isPaintingInverse;
   ScreenBuffer* next;
 
 public:
@@ -42,6 +43,7 @@ public:
   void refresh();
   void update(uint8_t* from, uint8_t* to);
   void setExpanded(int flag);
+  void setInverse(int flag);
   int isExpandedMode();
   void drawChar(ushort pos, byte character);
   bool getChar(ushort pos, byte& character);
@@ -63,11 +65,13 @@ public:
   uint8_t getHeight();
   void enableGrafyxMode(bool enable);
   void setExpanded(int flag);
+  void setInverse(int flag);
   bool isTextMode();
   void drawChar(ushort pos, byte character);
   bool getChar(ushort pos, byte& character);
   void clear();
   void refresh();
+  void screenshot();
 };
 
 extern TRSScreen trs_screen;

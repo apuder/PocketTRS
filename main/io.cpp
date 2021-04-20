@@ -64,17 +64,15 @@ void z80_out(uint8_t address, uint8_t data, tstate_t z80_state_t_count)
 	      int changes = data ^ ctrlimage;
 	      if (changes & 0x80) {
 	        mem_video_page((data & 0x80) >> 7);
-          //printf("mem_video_page: %d\n", (data & 0x80) >> 7);
+          printf("mem_video_page: %d\n", (data & 0x80) >> 7);
 	      }
 	      if (changes & 0x70) {
 	        mem_bank((data & 0x70) >> 4);
-          //printf("mem_bank: %d\n", (data & 0x70) >> 4);
+          printf("mem_bank: %d\n", (data & 0x70) >> 4);
       	}
-#if 0
 	      if (changes & 0x08) {
-	        trs_screen_inverse((data & 0x08) >> 3);
+	        trs_screen.setInverse((data & 0x08) >> 3);
 	      }
-#endif
 	      if (changes & 0x04) {
           //printf("Switch mode: %d\n", data & 4);
           trs_screen.setMode((data & 0x04) ? MODE_TEXT_80x24 : MODE_TEXT_64x16);
