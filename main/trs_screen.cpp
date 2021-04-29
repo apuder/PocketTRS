@@ -22,59 +22,41 @@
 #include "font/font_m4"
 
 //----------------------------------------------------------------
-static const ushort m3toUnicode[] = {
-  // Special characters, highly ad-hoc.
-  0x20,   0xa3,   0x7c,   0xe9,   0xdc,   0xc5,   0xac,   0xf6,
-  0xd8,   0xf9,   0xf1,   0x60, 0x0101, 0xe00d,   0xc4,   0xc3,
-  0xd1,   0xd6,   0xd8,   0xd5,   0xdf,   0xfc,   0xf5,   0xe6,
-      0xe4,   0xe0, 0x0227, 0xe01b,   0xc9,   0xc6,   0xc7, 0x02dc,
+static const char* m3toUnicode[] = {
+  u8"\u0020", u8"\u00a3", u8"\u007c", u8"\u00e9", u8"\u00dc", u8"\u00c5", u8"\u00ac", u8"\u00f6", 
+  u8"\u00d8", u8"\u00f9", u8"\u00f1", u8"\u0060", u8"\u0101", u8"\ue00d", u8"\u00c4", u8"\u00c3", 
+  u8"\u00d1", u8"\u00d6", u8"\u00d8", u8"\u00d5", u8"\u00df", u8"\u00fc", u8"\u00f5", u8"\u00e6", 
+  u8"\u00e4", u8"\u00e0", u8"\u0227", u8"\ue01b", u8"\u00c9", u8"\u00c6", u8"\u00c7", u8"\u02dc", 
+  u8"\u0020", u8"\u0021", u8"\u0022", u8"\u0023", u8"\u0024", u8"\u0025", u8"\u0026", u8"\u0027", 
+  u8"\u0028", u8"\u0029", u8"\u002a", u8"\u002b", u8"\u002c", u8"\u002d", u8"\u002e", u8"\u002f", 
+  u8"\u0030", u8"\u0031", u8"\u0032", u8"\u0033", u8"\u0034", u8"\u0035", u8"\u0036", u8"\u0037", 
+  u8"\u0038", u8"\u0039", u8"\u003a", u8"\u003b", u8"\u003c", u8"\u003d", u8"\u003e", u8"\u003f", 
+  u8"\u0040", u8"\u0041", u8"\u0042", u8"\u0043", u8"\u0044", u8"\u0045", u8"\u0046", u8"\u0047", 
+  u8"\u0048", u8"\u0049", u8"\u004a", u8"\u004b", u8"\u004c", u8"\u004d", u8"\u004e", u8"\u004f", 
+  u8"\u0050", u8"\u0051", u8"\u0052", u8"\u0053", u8"\u0054", u8"\u0055", u8"\u0056", u8"\u0057", 
+  u8"\u0058", u8"\u0059", u8"\u005a", u8"\u005b", u8"\u005c", u8"\u005d", u8"\u005e", u8"\u005f", 
+  u8"\u0060", u8"\u0061", u8"\u0062", u8"\u0063", u8"\u0064", u8"\u0065", u8"\u0066", u8"\u0067", 
+  u8"\u0068", u8"\u0069", u8"\u006a", u8"\u006b", u8"\u006c", u8"\u006d", u8"\u006e", u8"\u006f", 
+  u8"\u0070", u8"\u0071", u8"\u0072", u8"\u0073", u8"\u0074", u8"\u0075", u8"\u0076", u8"\u0077", 
+  u8"\u0078", u8"\u0079", u8"\u007a", u8"\u007b", u8"\u007c", u8"\u007d", u8"\u007e", u8"\u00b1", 
+  u8"\ue080", u8"\ue081", u8"\ue082", u8"\ue083", u8"\ue084", u8"\ue085", u8"\ue086", u8"\ue087", 
+  u8"\ue088", u8"\ue089", u8"\ue08a", u8"\ue08b", u8"\ue08c", u8"\ue08d", u8"\ue08e", u8"\ue08f", 
+  u8"\ue090", u8"\ue091", u8"\ue092", u8"\ue093", u8"\ue094", u8"\ue095", u8"\ue096", u8"\ue097", 
+  u8"\ue098", u8"\ue099", u8"\ue09a", u8"\ue09b", u8"\ue09c", u8"\ue09d", u8"\ue09e", u8"\ue09f", 
+  u8"\ue0a0", u8"\ue0a1", u8"\ue0a2", u8"\ue0a3", u8"\ue0a4", u8"\ue0a5", u8"\ue0a6", u8"\ue0a7", 
+  u8"\ue0a8", u8"\ue0a9", u8"\ue0aa", u8"\ue0ab", u8"\ue0ac", u8"\ue0ad", u8"\ue0ae", u8"\ue0af", 
+  u8"\ue0b0", u8"\ue0b1", u8"\ue0b2", u8"\ue0b3", u8"\ue0b4", u8"\ue0b5", u8"\ue0b6", u8"\ue0b7", 
+  u8"\ue0b8", u8"\ue0b9", u8"\ue0ba", u8"\ue0bb", u8"\ue0bc", u8"\ue0bd", u8"\ue0be", u8"\ue0bf", 
+  u8"\u2660", u8"\u2665", u8"\u2666", u8"\u2663", u8"\u263a", u8"\u2639", u8"\u2264", u8"\u2265", 
+  u8"\u03b1", u8"\u03b2", u8"\u03b3", u8"\u03b4", u8"\u03b5", u8"\u03b6", u8"\u03b7", u8"\u03b8", 
+  u8"\u03b9", u8"\u03ba", u8"\u03bc", u8"\u03bd", u8"\u03be", u8"\u03bf", u8"\u03c0", u8"\u03c1", 
+  u8"\u03c2", u8"\u03c3", u8"\u03c4", u8"\u03c5", u8"\u03c6", u8"\u03c7", u8"\u03c8", u8"\u03c9", 
+  u8"\u2126", u8"\u221a", u8"\u00f7", u8"\u2211", u8"\u2248", u8"\u2206", u8"\u2307", u8"\u2260", 
+  u8"\u2301", u8"\ue0e9", u8"\u237e", u8"\u221e", u8"\u2713", u8"\u00a7", u8"\u2318", u8"\u00a9", 
+  u8"\u00a4", u8"\u00b6", u8"\u00a2", u8"\u00ae", u8"\ue0f4", u8"\ue0f5", u8"\ue0f6", u8"\u211e", 
+  u8"\u2105", u8"\u2642", u8"\u2640", u8"\ue0fb", u8"\ue0fc", u8"\ue0fd", u8"\ue0fe", u8"\u2302"
+};
 
-    // ASCII range.  Identity map of 20 .. 7e with special case for 7f.
-    0x20, 0x21, 0x22, 0x23, 0x24, 0x25, 0x26, 0x27,
-    0x28, 0x29, 0x2a, 0x2b, 0x2c, 0x2d, 0x2e, 0x2f,
-    0x30, 0x31, 0x32, 0x33, 0x34, 0x35, 0x36, 0x37,
-    0x38, 0x39, 0x3a, 0x3b, 0x3c, 0x3d, 0x3e, 0x3f,
-    0x40, 0x41, 0x42, 0x43, 0x44, 0x45, 0x46, 0x47,
-    0x48, 0x49, 0x4a, 0x4b, 0x4c, 0x4d, 0x4e, 0x4f,
-    0x50, 0x51, 0x52, 0x53, 0x54, 0x55, 0x56, 0x57,
-    0x58, 0x59, 0x5a, 0x5b, 0x5c, 0x5d, 0x5e, 0x5f,
-    0x60, 0x61, 0x62, 0x63, 0x64, 0x65, 0x66, 0x67,
-    0x68, 0x69, 0x6a, 0x6b, 0x6c, 0x6d, 0x6e, 0x6f,
-    0x70, 0x71, 0x72, 0x73, 0x74, 0x75, 0x76, 0x77,
-    0x78, 0x79, 0x7a, 0x7b, 0x7c, 0x7d, 0x7e, 0xb1,
-
-    // Graphics characters.  Trivial map of 80 .. BF to E080 .. E0BF.
-    0xe080, 0xe081, 0xe082, 0xe083, 0xe084, 0xe085, 0xe086, 0xe087,
-    0xe088, 0xe089, 0xe08a, 0xe08b, 0xe08c, 0xe08d, 0xe08e, 0xe08f,
-    0xe090, 0xe091, 0xe092, 0xe093, 0xe094, 0xe095, 0xe096, 0xe097,
-    0xe098, 0xe099, 0xe09a, 0xe09b, 0xe09c, 0xe09d, 0xe09e, 0xe09f,
-    0xe0a0, 0xe0a1, 0xe0a2, 0xe0a3, 0xe0a4, 0xe0a5, 0xe0a6, 0xe0a7,
-    0xe0a8, 0xe0a9, 0xe0aa, 0xe0ab, 0xe0ac, 0xe0ad, 0xe0ae, 0xe0af,
-    0xe0b0, 0xe0b1, 0xe0b2, 0xe0b3, 0xe0b4, 0xe0b5, 0xe0b6, 0xe0b7,
-    0xe0b8, 0xe0b9, 0xe0ba, 0xe0bb, 0xe0bc, 0xe0bd, 0xe0be, 0xe0bf,
-
-    // Special characters.  Mostly ad-hoc, but contiguous stretch for
-    // the lowercase Greek letters.
-    0x2660, 0x2665, 0x2666, 0x2663, 0x263a, 0x2639, 0x2264, 0x2265,
-    0x03b1, 0x03b2, 0x03b3, 0x03b4, 0x03b5, 0x03b6, 0x03b7, 0x03b8,
-    0x03b9, 0x03ba, 0x03bc, 0x03bd, 0x03be, 0x03bf, 0x03c0, 0x03c1,
-    0x03c2, 0x03c3, 0x03c4, 0x03c5, 0x03c6, 0x03c7, 0x03c8, 0x03c9,
-    0x2126, 0x221a,   0xf7, 0x2211, 0x2248, 0x2206, 0x2307, 0x2260,
-    0x2301, 0xe0e9, 0x237e, 0x221e, 0x2713,   0xa7, 0x2318,   0xa9,
-      0xa4,   0xb6,   0xa2,   0xae, 0xe0f4, 0xe0f5, 0xe0f6, 0x211e,
-    0x2105, 0x2642, 0x2640, 0xe0fb, 0xe0fc, 0xe0fd, 0xe0fe, 0x2302,
-
-    // Halfwidth Katakana.  Trivial map of C1 .. FF to FF61 .. FF9F
-    // with special case for C0 (Yen sign).
-      0xa5, 0xff61, 0xff62, 0xff63, 0xff64, 0xff65, 0xff66, 0xff67,
-    0xff68, 0xff69, 0xff6a, 0xff6b, 0xff6c, 0xff6d, 0xff6e, 0xff6f,
-    0xff70, 0xff71, 0xff72, 0xff73, 0xff74, 0xff75, 0xff76, 0xff77,
-    0xff78, 0xff79, 0xff7a, 0xff7b, 0xff7c, 0xff7d, 0xff7e, 0xff7f,
-    0xff80, 0xff81, 0xff82, 0xff83, 0xff84, 0xff85, 0xff86, 0xff87,
-    0xff88, 0xff89, 0xff8a, 0xff8b, 0xff8c, 0xff8d, 0xff8e, 0xff8f,
-    0xff90, 0xff91, 0xff92, 0xff93, 0xff94, 0xff95, 0xff96, 0xff97,
-    0xff98, 0xff99, 0xff9a, 0xff9b, 0xff9c, 0xff9d, 0xff9e, 0xff9f
-    };
 //----------------------------------------------------------------
 
 fabgl::VGA2Controller DisplayController;
@@ -401,19 +383,12 @@ void TRSScreen::screenshot()
     for (int x = 0; x < getWidth(); x++) {
       byte ch;
       getChar(pos++, ch);
-      trs_printer_write(m3toUnicode[ch] & 0xff);
-      trs_printer_write(m3toUnicode[ch] >> 8);
-      #if 0
-      byte utf8 = m3toUnicode[ch] >> 8;
-      if (utf8 != 0) {
-        trs_printer_write(utf8 & 0xff);
-      }
-      trs_printer_write(m3toUnicode[ch] & 0xff);
-      #endif
+      const char* uni = m3toUnicode[ch];
+      trs_printer_write(uni);
     }
-    trs_printer_write('\n');
+    trs_printer_write("\n");
   }
-  trs_printer_write('\n');
+  trs_printer_write("\n");
 }
 
 TRSScreen trs_screen;

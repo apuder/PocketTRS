@@ -82,6 +82,7 @@ typedef unsigned char Uchar;
 /* We allow for 2MB of banked memory via port 0x94. That is the extreme limit
    of the port mods rather than anything normal (512K might be more 'normal' */
 Uchar memory[2 * 64 * 1024] EXT_RAM_ATTR;
+Uchar video[MAX_VIDEO_SIZE + 1] EXT_RAM_ATTR;
 const Uchar* rom = model3_frehd_rom;
 int trs_rom_size = model3_frehd_rom_len;
 int lowercase = 1;
@@ -326,7 +327,8 @@ void mem_romin(int state)
 void mem_init()
 {
     /* Initialize RAM, ROM & Video memory */
-    memset(&memory, 0, sizeof(memory));
+    memset(memory, 0, sizeof(memory));
+    memset(video, 0, sizeof(video));
 
     if (trs_model < 4)
         trs_video_size = 1024;
@@ -354,7 +356,7 @@ void mem_init()
 int mem_read(unsigned int address)
 {
     address &= 0xffff; /* allow callers to be sloppy */
-
+ 
     /* There are some adapters that sit above the system and
        either intercept before the hardware proper, or adjust
        the address. Deal with these first so that we take their
@@ -392,11 +394,7 @@ int mem_read(unsigned int address)
 	//if (address == PRINTER_ADDRESS) return trs_printer_read();
 	if (address < trs_rom_size) return rom[address];
 	if (address >= VIDEO_START) {
-	  byte character;
-	  if (trs_screen.getChar(address + video_offset, character)) {
-	    return character;
-	  }
-	  return memory[address];
+	  return video[address + video_offset];
 	}
 	if (address >= KEYBOARD_START) return trs_kb_mem_read(address);
 	return 0xff;
@@ -413,11 +411,7 @@ int mem_read(unsigned int address)
 	    return memory[address + bank_offset[address >> 15]];
 	}
 	if (address >= VIDEO_START) {
-	  byte character;
-	  if (trs_screen.getChar(address + video_offset, character)) {
-            return character;
-	  }
-	  return memory[address];
+	  return video[address + video_offset];
 	}
 	if (address >= KEYBOARD_START) return trs_kb_mem_read(address);
 	return 0xff;
@@ -425,16 +419,12 @@ int mem_read(unsigned int address)
       case 0x42: /* Model 4 map 2 */
       case 0x52: /* Model 4P map 2, boot ROM out */
       case 0x56: /* Model 4P map 2, boot ROM in */
-	if (address < 0xf400 || address >= (0xf800 + 80 * 24)) {
+	if (address < 0xf400) {
 	    assert(address + bank_offset[address >> 15] < sizeof(memory));
 	    return memory[address + bank_offset[address >> 15]];
 	}
 	if (address >= 0xf800) {
-	  byte character;
-	  if (trs_screen.getChar(address-0xf800, character)) {
-	    return character;
-	  }
-	  return memory[address];
+	  return video[address - 0xf800];
 	}
 	return trs_kb_mem_read(address);
 
@@ -471,10 +461,12 @@ void mem_write(unsigned int address, int value)
 	if (address >= RAM_START) {
 	    memory[address] = value;
 	} else if (address >= VIDEO_START) {
-	    memory[address] = value;
-	    int vaddr = address + video_offset;
-	    //	    if (grafyx_m3_write_byte(vaddr, value)) return;
-	    trs_screen.drawChar(vaddr, value);
+	  int vaddr = address + video_offset;
+          //  if (grafyx_m3_write_byte(vaddr, value)) return;
+          if (video[vaddr] != value) {
+            video[vaddr] = value;
+            trs_screen.drawChar(vaddr, value);
+          }
 	} else if (address == PRINTER_ADDRESS) {
 	    //trs_printer_write(value);
 	}
@@ -487,8 +479,11 @@ void mem_write(unsigned int address, int value)
 	    assert(address + bank_offset[address >> 15] < sizeof(memory));
 	    memory[address + bank_offset[address >> 15]] = value;
 	} else if (address >= VIDEO_START) {
-	    memory[address] = value;
-	    trs_screen.drawChar(address + video_offset, value);
+	  int vaddr = address + video_offset;
+          if (video[vaddr] != value) {
+            video[vaddr] = value;
+            trs_screen.drawChar(vaddr, value);
+          }
 	} else if (address == PRINTER_ADDRESS) {
 	  //trs_printer_write(value);
 	}
@@ -501,20 +496,26 @@ void mem_write(unsigned int address, int value)
 	    assert(address + bank_offset[address >> 15] < sizeof(memory));
 	    memory[address + bank_offset[address >> 15]] = value;
 	} else if (address >= VIDEO_START) {
-	    memory[address] = value;
-	    trs_screen.drawChar(address + video_offset, value);
+	  int vaddr = address + video_offset;
+          if (video[vaddr] != value) {
+            video[vaddr] = value;
+            trs_screen.drawChar(vaddr, value);
+           }
 	}
 	break;
 
       case 0x42: /* Model 4 map 2 */
       case 0x52: /* Model 4P map 2, boot ROM out */
       case 0x56: /* Model 4P map 2, boot ROM in */
-	if (address < 0xf400 || address >= (0xf800 + 80 * 24)) {
+	if (address < 0xf400) {
 	    assert(address + bank_offset[address >> 15] < sizeof(memory));
 	    memory[address + bank_offset[address >> 15]] = value;
 	} else if (address >= 0xf800) {
-	    memory[address] = value;
-            trs_screen.drawChar(address - 0xf800, value);
+	  int vaddr = address - 0xf800;
+          if (video[vaddr] != value) {
+            video[vaddr] = value;
+            trs_screen.drawChar(vaddr, value);
+          }
 	}
 	break;
 

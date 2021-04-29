@@ -76,6 +76,8 @@ void loop() {
       configure_pocket_trs();
     } else if (down && vk == fabgl::VK_F9) {
       z80_reset();
+    } else if (down && vk == fabgl::VK_F4) {
+      trs_screen.screenshot();
     } else {
       process_key(vk, down);
     }
