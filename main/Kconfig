@@ -1,12 +1,13 @@
 menu "PocketTRS"
 
-    config POCKET_TRS_USE_PS2_FIX
-        bool "Use PS/2 keyboard fix"
+    config POCKET_TRS_TEST_PCB
+        bool "Run PocketTRS PCB tests"
         default n
         help
-        The first version of the PCB had a bug where data and
-	clock lines where swapped for the PS/2 keyboard. This
-	setting allows support for the first prototype PCB.
-	By default, the PS/2 fix will not be used.
+        When selecting this option, the PocketTRS firmware
+        will run some tests for the SPI interface. The default
+        is not to run the tests. Note that this compile-time
+        option can also be activated by pushing the "PTRS RST"
+        button at boot time.
 
 endmenu

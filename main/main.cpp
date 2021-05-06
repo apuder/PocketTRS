@@ -31,14 +31,11 @@ void setup() {
 #endif
 
   init_button();
-  if (is_button_pressed()) {
-    // Run hardware tests
-  }
   init_events();
   init_trs_io();
   init_storage();
-  init_i2s();
   init_io();
+  init_i2s();
   init_settings();
   trs_screen.init();
   show_splash();

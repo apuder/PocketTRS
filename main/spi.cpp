@@ -3,7 +3,9 @@
 #include <freertos/queue.h>
 #include <driver/gpio.h>
 #include <driver/spi_master.h>
+#include <esp_log.h>
 #include <string.h>
+#include "button.h"
 #include "config.h"
 #include "spi.h"
 
@@ -46,7 +48,7 @@ uint8_t readPortExpander(spi_device_handle_t dev, uint8_t reg)
 
   memset(&trans, 0, sizeof(spi_transaction_t));
   trans.flags = SPI_TRANS_USE_TXDATA | SPI_TRANS_USE_RXDATA;
-  trans.length = 3 * 8;   		// 2 bytes
+  trans.length = 3 * 8;   		// 3 bytes
   trans.rxlength = 0;
   trans.tx_data[0] = MCP23S_CHIP_ADDRESS | MCP23S_READ;
   trans.tx_data[1] = reg;
@@ -90,55 +92,83 @@ void writeDigiPot(uint8_t pot, uint8_t step)
   ESP_ERROR_CHECK(ret);
 }
 
-#if 1
+uint8_t readDigiPot(uint8_t pot)
+{
+  spi_transaction_t trans;
+  const uint8_t cmd = 3; // Read command
+  uint8_t p = 0;
+
+  // Determine MCP4351 memory address (table 7-2)
+  switch(pot) {
+  case 0:
+    p = 0;
+    break;
+  case 1:
+    p = 1;
+    break;
+  case 2:
+    p = 6;
+    break;
+  default:
+    assert(0);
+  }
+
+  uint8_t data = (p << 4) | (cmd << 2);
+
+  memset(&trans, 0, sizeof(spi_transaction_t));
+  trans.flags = SPI_TRANS_USE_TXDATA | SPI_TRANS_USE_RXDATA;
+  trans.length = 2 * 8;   		// 2 bytes
+  trans.rxlength = 0;
+  trans.tx_data[0] = data;
+  trans.tx_data[1] = 0;
+  esp_err_t ret = spi_device_transmit(spi_mcp4351_h, &trans);
+  ESP_ERROR_CHECK(ret);
+  return trans.rx_data[1];
+}
+
 void wire_test_port_expander()
 {
-#if 0
-  while (1) {
-    if(xQueueReceive(gpio_evt_queue, NULL, portMAX_DELAY)) {
-      uint8_t data = readPortExpander2(MCP23S08_INTCAP);
-      Serial.println(data);
-    }
-  }
-#else
+  // Check POR defaults to see if MCP23S* are present
+  bool not_found = false;
+  not_found |= readPortExpander(MCP23S17, MCP23S17_IODIRA) != 0xff;
+  not_found |= readPortExpander(MCP23S17, MCP23S17_IPOLA) != 0x00;
+  not_found |= readPortExpander(MCP23S17, MCP23S17_GPINTENA) != 0x00;
 
-#if 1
-  // Writing
-  uint8_t data = 0xaa;
+  if (not_found) {
+    ESP_LOGE("SPI", "MCP23S17 not found");
+  } else {
+    ESP_LOGI("SPI", "MCP23S17 found");
+  }
+  while(not_found) ;
+
+  not_found = false;
+  not_found |= readPortExpander(MCP23S08, MCP23S08_IODIR) != 0xff;
+  not_found |= readPortExpander(MCP23S08, MCP23S08_IPOL) != 0x00;
+  not_found |= readPortExpander(MCP23S08, MCP23S08_GPINTEN) != 0x00;
+  if (not_found) {
+    ESP_LOGE("SPI", "MCP23S08 not found");
+  } else {
+    ESP_LOGI("SPI", "MCP23S08 found");
+  }
+  while(not_found) ;
+
   writePortExpander(MCP23S17, MCP23S17_IODIRA, 0);
   writePortExpander(MCP23S17, MCP23S17_IODIRB, 0);
   writePortExpander(MCP23S08, MCP23S08_IODIR, 0);
 
-  while (1) {
-    writePortExpander(MCP23S17, MCP23S17_GPIOA, data);
-    writePortExpander(MCP23S17, MCP23S17_GPIOB, data);
-    writePortExpander(MCP23S08, MCP23S08_GPIO, data);
-    vTaskDelay(1000 / portTICK_PERIOD_MS);
-    data ^= 0xff;
-    writePortExpander(MCP23S17, MCP23S17_GPIOA, data);
-    writePortExpander(MCP23S17, MCP23S17_GPIOB, data);
-    writePortExpander(MCP23S08, MCP23S08_GPIO, data);
-    vTaskDelay(1000 / portTICK_PERIOD_MS);
-    data ^= 0xff;
-  }
-#else
-  // reading
-  uint8_t data = 0;
-  writePortExpander(MCP23S08, MCP23S08_IODIR, 0xff);
-  writePortExpander(MCP23S08, MCP23S08_GPPU, 0xff);
+  uint8_t data = 0xff;
 
   while (1) {
-    while (data == readPortExpander(MCP23S08, MCP23S08_GPIO)) ;
-    data = readPortExpander(MCP23S08, MCP23S08_GPIO);
-    Serial.println(data);
+    writePortExpander(MCP23S17, MCP23S17_GPIOA, data);
+    writePortExpander(MCP23S17, MCP23S17_GPIOB, data);
+    writePortExpander(MCP23S08, MCP23S08_GPIO, data);
+    vTaskDelay(1000 / portTICK_PERIOD_MS);
+    data ^= 0xff;
   }
-#endif
-#endif
 }
 
 static void wire_test_digital_pot()
 {
-  uint8_t step = 0;
   gpio_config_t gpioConfig;
 
   gpioConfig.pin_bit_mask = (1ULL << VGA_RED) | (1ULL << VGA_GREEN) | (1ULL << VGA_BLUE);
@@ -149,40 +179,32 @@ static void wire_test_digital_pot()
   gpio_set_level(VGA_GREEN, 1);
   gpio_set_level(VGA_BLUE, 1);
 
+#define VOLTAGE_TO_STEP(v) (int) (255.0f * (v) / 3.3f)
+  writeDigiPot(0, VOLTAGE_TO_STEP(1));
+  writeDigiPot(1, VOLTAGE_TO_STEP(2));
+  writeDigiPot(2, VOLTAGE_TO_STEP(3));
 
-  while (1) {
-    printf("Step: %d\n", step);
-    writeDigiPot(0, step);
-    writeDigiPot(1, step);
-    writeDigiPot(2, step);
-    vTaskDelay(1000 / portTICK_PERIOD_MS);
-    step += 10;
+  bool not_found = false;
+  not_found |= readDigiPot(0) != VOLTAGE_TO_STEP(1);
+  not_found |= readDigiPot(1) != VOLTAGE_TO_STEP(2);
+  not_found |= readDigiPot(2) != VOLTAGE_TO_STEP(3);
+  if (not_found) {
+    ESP_LOGE("SPI", "MCP4361 not found");
+  } else {
+    ESP_LOGI("SPI", "MCP4361 found");
   }
+  while (not_found) ;
 }
-#endif
 
 static void test()
 {
-  gpio_config_t io_conf;
-  io_conf.intr_type = GPIO_INTR_DISABLE; //GPIO_INTR_NEGEDGE;
-  io_conf.mode = GPIO_MODE_OUTPUT;
-  io_conf.pin_bit_mask = GPIO_SEL_18;
-  io_conf.pull_down_en = GPIO_PULLDOWN_DISABLE;
-  io_conf.pull_up_en = GPIO_PULLUP_DISABLE;
-  gpio_config(&io_conf);
-
-  int cnt = 0;
-  while(1) {
-    printf("cnt: %d\n", cnt++);
-    vTaskDelay(1000 / portTICK_RATE_MS);
-    gpio_set_level(GPIO_NUM_18, cnt % 2);
-    gpio_set_level(GPIO_NUM_18, cnt % 2);
-  }
+  ESP_LOGI("SPI", "PocketTRS SPI bus test");
+  wire_test_digital_pot();
+  wire_test_port_expander();
 }
 
 void init_spi()
 {
-  //test();
   // Configure SPI bus
   spi_bus.flags = SPICOMMON_BUSFLAG_MASTER;
   spi_bus.sclk_io_num = SPI_PIN_NUM_CLK;
@@ -262,9 +284,14 @@ void init_spi()
   ret = spi_bus_add_device(SPI_HOST_PE, &spi_mcp4351, &spi_mcp4351_h);
   ESP_ERROR_CHECK(ret);
 
-  //wire_test_port_expander();
-  //wire_test_digital_pot();
-  
+#ifdef CONFIG_POCKET_TRS_TEST_PCB
+  test();
+#else
+  if (is_button_pressed()) {
+    test();
+  }
+#endif
+
   /*
    * MCP23S17 configuration
    */

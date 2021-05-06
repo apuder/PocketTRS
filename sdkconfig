@@ -1069,7 +1069,7 @@ CONFIG_WPA_MBEDTLS_CRYPTO=y
 #
 # PocketTRS
 #
-CONFIG_POCKET_TRS_USE_PS2_FIX=y
+# CONFIG_POCKET_TRS_TEST_PCB is not set
 # end of PocketTRS
 # end of Component config
 
