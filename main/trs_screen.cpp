@@ -62,7 +62,7 @@ static const char* m3toUnicode[] = {
 fabgl::VGA2Controller DisplayController;
 fabgl::Canvas         Canvas(&DisplayController);
 
-uint8_t ScreenBuffer::currentMonitorMode = MODE_TEXT_64x16;
+uint8_t ScreenBuffer::currentMonitorMode = 0;
 
 ScreenBuffer::ScreenBuffer(uint8_t mode)
 {
@@ -74,7 +74,6 @@ ScreenBuffer::ScreenBuffer(uint8_t mode)
   this->char_height = 0;
   this->font = nullptr;
   this->next = nullptr;
-  this->currentMonitorMode = 0;
   this->isPaintingInverse = false;
   setMode(mode);
   clear();
@@ -269,7 +268,6 @@ bool ScreenBuffer::getChar(ushort pos, byte& character)
 TRSScreen::TRSScreen()
 {
   top = nullptr;
-  mode = 0;
 }
 
 void TRSScreen::init()
@@ -288,26 +286,23 @@ void TRSScreen::push(ScreenBuffer* screenBuffer)
 {
   screenBuffer->setNext(top);
   top = screenBuffer;
-  mode = top->getMode();
 }
 
 void TRSScreen::pop()
 {
   ScreenBuffer* tmp = top;
   top = top->getNext();
-  mode = (top == nullptr) ? 0 : top->getMode();
   delete tmp;
 }
 
 void TRSScreen::setMode(uint8_t mode)
 {
   top->setMode(mode);
-  this->mode = top->getMode();
 }
 
 uint8_t TRSScreen::getMode()
 {
-  return mode;
+  return top->getMode();
 }
 
 uint8_t TRSScreen::getWidth()
@@ -322,6 +317,7 @@ uint8_t TRSScreen::getHeight()
 
 void TRSScreen::enableGrafyxMode(bool enable)
 {
+  uint8_t mode = top->getMode();
   if (enable) {
     mode |= MODE_GRAFYX;
   } else {
@@ -344,7 +340,7 @@ void TRSScreen::setInverse(int flag)
 
 bool TRSScreen::isTextMode()
 {
-  return (mode & MODE_GRAFYX) == 0;
+  return (top->getMode() & MODE_GRAFYX) == 0;
 }
 
 void TRSScreen::drawChar(ushort pos, byte character)

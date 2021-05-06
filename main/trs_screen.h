@@ -52,7 +52,6 @@ public:
 class TRSScreen {
 private:
   ScreenBuffer* top;
-  uint8_t mode;
 
 public:
   TRSScreen();
