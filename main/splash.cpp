@@ -1,6 +1,7 @@
 
 #include "splash.h"
 #include "trs_screen.h"
+#include "settings.h"
 #include <cstring>
 
 
@@ -9,10 +10,39 @@ extern const unsigned char splash[1024];
 void show_splash()
 {
   ScreenBuffer* screenBuffer = new ScreenBuffer(MODE_TEXT_64x16);
-  memcpy(screenBuffer->getBuffer(), splash, 1024);
+  if (settingsSplashScreen.hideSplashScreen()) {
+    memset(screenBuffer->getBuffer(), ' ', 1024);
+  } else {
+    memcpy(screenBuffer->getBuffer(), splash, 1024);
+  }
   trs_screen.push(screenBuffer);
   trs_screen.refresh();
 }
+
+//----------------------------------------------------------------
+
+static const char* KEY_SPLASH = "hide_splash";
+
+void SettingsSplashScreen::init()
+{
+  uint8_t flag = nvs_get_u8(KEY_SPLASH);
+  hide_splash_screen = (flag != 0);
+}
+
+bool SettingsSplashScreen::hideSplashScreen()
+{
+  return hide_splash_screen;
+}
+
+void SettingsSplashScreen::hideSplashScreen(bool hide)
+{
+  nvs_set_u8(KEY_SPLASH, hide ? 1 : 0);
+  hide_splash_screen = hide;
+}
+
+SettingsSplashScreen settingsSplashScreen;
+
+//----------------------------------------------------------------
 
 const unsigned char splash[1024] = {
   0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80,

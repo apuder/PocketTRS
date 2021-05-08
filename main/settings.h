@@ -93,6 +93,22 @@ extern SettingsTrsIO settingsTrsIO;
 
 
 /****************************************************************
+ * SettingsSplashScreen
+ ****************************************************************/
+
+class SettingsSplashScreen : public virtual SettingsBase {
+    private:
+    bool hide_splash_screen;
+    public:
+    void init();
+    bool hideSplashScreen();
+    void hideSplashScreen(bool hide);
+};
+
+extern SettingsSplashScreen settingsSplashScreen;
+
+
+/****************************************************************
  * SettingsCalibration
  ****************************************************************/
 
