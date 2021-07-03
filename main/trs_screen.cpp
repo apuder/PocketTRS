@@ -272,7 +272,11 @@ TRSScreen::TRSScreen()
 
 void TRSScreen::init()
 {
+#ifdef CONFIG_POCKET_TRS_TTGO_VGA32_SUPPORT
+  DisplayController.begin(GPIO_NUM_22, GPIO_NUM_21, GPIO_NUM_19, GPIO_NUM_18, GPIO_NUM_5, GPIO_NUM_4, GPIO_NUM_23, GPIO_NUM_15);
+#else
   DisplayController.begin(VGA_RED, VGA_GREEN, VGA_BLUE, VGA_HSYNC, VGA_VSYNC);
+#endif
   DisplayController.setResolution(VGA_512x192_60Hz);
   DisplayController.enableBackgroundPrimitiveExecution(false);
   DisplayController.enableBackgroundPrimitiveTimeout(false);
@@ -411,9 +415,24 @@ screen_color_t SettingsScreen::getScreenColor() {
 
 void SettingsScreen::setScreenColor(screen_color_t color) {
   nvs_set_u8(KEY_COLOR, color);
+
+#ifdef CONFIG_POCKET_TRS_TTGO_VGA32_SUPPORT
+  switch(color) {
+    case SCREEN_COLOR_WHITE:
+      DisplayController.setPaletteItem(1, RGB888(0xe0, 0xe0, 0xff));
+      break;
+    case SCREEN_COLOR_GREEN:
+      DisplayController.setPaletteItem(1, RGB888(0x33, 0xff, 0x33));
+      break;
+    case SCREEN_COLOR_AMBER:
+      DisplayController.setPaletteItem(1, RGB888( 0xff, 0xb0, 0x00));
+      break;
+  }
+#else
   for (int i = 0; i < 3; i++) {
     writeDigiPot(i, wiper_settings[color][i]);
   }
+#endif
 }
 
 SettingsScreen settingsScreen;

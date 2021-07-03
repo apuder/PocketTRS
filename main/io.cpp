@@ -258,7 +258,11 @@ void SettingsTrsIO::init()
 
 bool SettingsTrsIO::isEnabled()
 {
+#ifdef CONFIG_POCKET_TRS_TTGO_VGA32_SUPPORT
+  return true;
+#else
   return use_trs_io;
+#endif
 }
 
 void SettingsTrsIO::setEnabled(bool flag)

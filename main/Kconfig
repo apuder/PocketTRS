@@ -10,4 +10,11 @@ menu "PocketTRS"
         option can also be activated by pushing the "PTRS RST"
         button at boot time.
 
+    config POCKET_TRS_TTGO_VGA32_SUPPORT
+        bool "Add support for the TTGO VGA32 v1.4 board"
+        help
+        When selecting this option, PocketTRS will be configured
+        for the TTGO VGA32 v1.4 board. This will disable certain
+        functions (e.g., support for the 50 pin expansion interface,
+        cassette input, etc)
 endmenu

@@ -205,6 +205,20 @@ static void test()
 
 void init_spi()
 {
+#ifdef CONFIG_POCKET_TRS_TTGO_VGA32_SUPPORT
+  spi_bus_config_t bus_cfg = {
+    .mosi_io_num = GPIO_NUM_12,
+    .miso_io_num = GPIO_NUM_2,
+    .sclk_io_num = GPIO_NUM_14,
+    .quadwp_io_num = -1,
+    .quadhd_io_num = -1,
+    .max_transfer_sz = 4000,
+  };
+  esp_err_t ret = spi_bus_initialize(HSPI_HOST, &bus_cfg, 1);
+  if (ret != ESP_OK) {
+    ESP_LOGE("SPI", "Failed to initialize bus");
+  }
+#else
   // Configure SPI bus
   spi_bus.flags = SPICOMMON_BUSFLAG_MASTER;
   spi_bus.sclk_io_num = SPI_PIN_NUM_CLK;
@@ -320,5 +334,7 @@ void init_spi()
   writePortExpander(MCP23S08, MCP23S08_GPINTEN, 0xff);
   // Dummy read to clear INT
   readPortExpander(MCP23S08, MCP23S08_INTCAP);
+#endif
+
 #endif
 }

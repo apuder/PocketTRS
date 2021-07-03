@@ -30,7 +30,9 @@ void configure()
   init_form_begin(configuration_form);
   init_form_header("GENERAL:");
   init_form_checkbox("Show splash screen", &show_splash_screen);
+#ifndef CONFIG_POCKET_TRS_TTGO_VGA32_SUPPORT
   init_form_checkbox("Enable TRS-IO", &enable_trs_io);
+#endif
   init_form_select("Screen color", &screen_color, items);
   form_item_t* tz = init_form_input("Timezone", 0, MAX_LEN_TZ, config->tz);
   init_form_header("");
@@ -41,6 +43,9 @@ void configure()
   form_item_t* smb_url = init_form_input("URL", 40, MAX_LEN_SMB_URL, config->smb_url);
   form_item_t* smb_user = init_form_input("User", 0, MAX_LEN_SMB_USER, config->smb_user);
   form_item_t* smb_passwd = init_form_input("Password", 0, MAX_LEN_SMB_PASSWD, config->smb_passwd);
+#ifdef CONFIG_POCKET_TRS_TTGO_VGA32_SUPPORT
+  init_form_header("");
+#endif
   init_form_end(configuration_form);
   screen_color = (uint8_t) settingsScreen.getScreenColor();
   show_splash_screen = !settingsSplashScreen.hideSplashScreen();
@@ -50,7 +55,9 @@ void configure()
 
   settingsScreen.setScreenColor((screen_color_t) screen_color);
   settingsSplashScreen.hideSplashScreen(!show_splash_screen);
+#ifndef CONFIG_POCKET_TRS_TTGO_VGA32_SUPPORT
   settingsTrsIO.setEnabled(enable_trs_io);
+#endif
 
   if (smb_url->dirty || smb_user->dirty || smb_passwd->dirty) {
     init_trs_fs(config->smb_url, config->smb_user, config->smb_passwd);

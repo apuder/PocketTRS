@@ -18,6 +18,7 @@
 #include "freertos/task.h"
 
 #include "trs-io.h"
+#include "trs-fs.h"
 #include "ntp_sync.h"
 
 
@@ -41,6 +42,7 @@ void setup() {
   show_splash();
   init_wifi();
   vTaskDelay(5000 / portTICK_PERIOD_MS);
+  init_trs_fs();
   //settingsCalibration.setScreenOffset();
   PS2Controller.begin(PS2Preset::KeyboardPort0, KbdMode::CreateVirtualKeysQueue);
 
