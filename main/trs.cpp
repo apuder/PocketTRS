@@ -79,6 +79,7 @@ static byte z80_io_read(int param, ushort address)
   case 0xcf:
   case 0xe0:
   case 0xec:
+  case 0xF0:
   case 0xF8:
   case 0xF9:
   case 0xFA:
