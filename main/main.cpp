@@ -40,9 +40,9 @@ void setup() {
   init_settings();
   trs_screen.init();
   show_splash();
+  init_trs_fs_posix();
   init_wifi();
   vTaskDelay(5000 / portTICK_PERIOD_MS);
-  init_trs_fs();
   //settingsCalibration.setScreenOffset();
   PS2Controller.begin(PS2Preset::KeyboardPort0, KbdMode::CreateVirtualKeysQueue);
 
