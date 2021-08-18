@@ -138,6 +138,7 @@ void ScreenBuffer::setMode(uint8_t mode)
     Canvas.setPenColor(Color::White);
     Canvas.clear();
     clear();
+    settingsScreen.init();
   }
   currentMonitorMode &= ~(MODE_TEXT_64x16 | MODE_TEXT_80x24);
   currentMonitorMode |= mode;

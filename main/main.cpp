@@ -37,8 +37,8 @@ void setup() {
   init_storage();
   init_io();
   init_i2s();
-  init_settings();
   trs_screen.init();
+  init_settings();
   show_splash();
   init_trs_fs_posix();
   init_wifi();
