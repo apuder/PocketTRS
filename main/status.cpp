@@ -68,6 +68,13 @@ void status()
   const char* smb_err = get_smb_err_msg();
   wnd_print(&wnd, false, smb_err == NULL ? "SMB connected" : smb_err);
 
+  if (trs_fs_has_sd_card_reader()) {
+    wnd_cr(&wnd);
+    wnd_print(&wnd, false, "SD status : ");
+    const char* posix_err = get_posix_err_msg();
+    wnd_print(&wnd, false, posix_err == NULL ? "Mounted" : posix_err);
+  }
+
   screen_show(false);
   get_key();
 }
