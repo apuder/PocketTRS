@@ -246,7 +246,7 @@ Wire Wire Line
 Text GLabel 3450 1800 2    50   Input ~ 0
 ESP_MISO
 Text GLabel 4000 1900 2    50   Input ~ 0
-CS23S08
+CS_EXPAND
 Wire Wire Line
 	3150 1800 3450 1800
 Wire Wire Line
@@ -269,18 +269,6 @@ Wire Wire Line
 Connection ~ 7150 7300
 Wire Wire Line
 	7150 7300 7150 7450
-Wire Wire Line
-	6450 6850 6300 6850
-Wire Wire Line
-	6300 6850 6300 6750
-Wire Wire Line
-	6450 6950 6300 6950
-Wire Wire Line
-	6300 6950 6300 6850
-Connection ~ 6300 6850
-Wire Wire Line
-	6300 6950 6300 7300
-Connection ~ 6300 6950
 Wire Wire Line
 	6300 7300 7150 7300
 Text GLabel 5850 6250 0    50   Input ~ 0
@@ -945,11 +933,11 @@ MOSI
 Text GLabel 10450 6150 2    50   Input ~ 0
 SCK
 Text GLabel 5850 5350 0    50   Input ~ 0
-CS23S17
+CS_EXPAND
 Wire Wire Line
-	5850 5350 6450 5350
+	5850 5350 6100 5350
 Text GLabel 9050 5750 0    50   Input ~ 0
-CS23S08
+CS_EXPAND
 Wire Wire Line
 	9050 5750 9350 5750
 Text GLabel 1150 2300 0    50   Input ~ 0
@@ -961,7 +949,7 @@ Wire Wire Line
 Wire Wire Line
 	1150 2300 2000 2300
 Text GLabel 3450 2600 2    50   Input ~ 0
-CS23S17
+CS_SD
 Wire Wire Line
 	3450 2600 3150 2600
 Text GLabel 13900 7300 0    50   Input ~ 0
@@ -1960,4 +1948,205 @@ Wire Wire Line
 	4150 7550 3950 7550
 Wire Wire Line
 	3950 7650 4150 7650
+$Comp
+L Device:R R17
+U 1 1 6121C563
+P 6100 5100
+F 0 "R17" H 6170 5146 50  0000 L CNN
+F 1 "10K" H 6170 5055 50  0000 L CNN
+F 2 "Resistors_SMD:R_0805_HandSoldering" V 6030 5100 50  0001 C CNN
+F 3 "~" H 6100 5100 50  0001 C CNN
+	1    6100 5100
+	1    0    0    -1  
+$EndComp
+$Comp
+L power:+3.3V #PWR0131
+U 1 1 6121CBDA
+P 6100 4850
+F 0 "#PWR0131" H 6100 4700 50  0001 C CNN
+F 1 "+3.3V" H 6115 5023 50  0000 C CNN
+F 2 "" H 6100 4850 50  0001 C CNN
+F 3 "" H 6100 4850 50  0001 C CNN
+	1    6100 4850
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	6100 4850 6100 4950
+Wire Wire Line
+	6100 5250 6100 5350
+Connection ~ 6100 5350
+Wire Wire Line
+	6100 5350 6450 5350
+$Comp
+L SDCard:SD_Card J8
+U 1 1 612ADED4
+P 7250 9450
+F 0 "J8" H 7250 10115 50  0000 C CNN
+F 1 "SD_Card" H 7250 10024 50  0000 C CNN
+F 2 "PocketTRS_Connectors.pretty:TFP09-2-12B" H 7250 9450 50  0001 C CNN
+F 3 "http://portal.fciconnect.com/Comergent//fci/drawing/10067847.pdf" H 7250 9450 50  0001 C CNN
+	1    7250 9450
+	1    0    0    -1  
+$EndComp
+$Comp
+L power:GND #PWR0132
+U 1 1 612AF2A8
+P 8500 9750
+F 0 "#PWR0132" H 8500 9500 50  0001 C CNN
+F 1 "GND" H 8500 9600 50  0000 C CNN
+F 2 "" H 8500 9750 50  0001 C CNN
+F 3 "" H 8500 9750 50  0001 C CNN
+	1    8500 9750
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	8150 9250 8500 9250
+Wire Wire Line
+	8500 9250 8500 9350
+Wire Wire Line
+	8150 9350 8500 9350
+Connection ~ 8500 9350
+Wire Wire Line
+	8500 9350 8500 9550
+Wire Wire Line
+	8150 9550 8500 9550
+Connection ~ 8500 9550
+Wire Wire Line
+	8500 9550 8500 9650
+Wire Wire Line
+	8150 9650 8500 9650
+Connection ~ 8500 9650
+Wire Wire Line
+	8500 9650 8500 9750
+Wire Wire Line
+	6350 9550 5850 9550
+$Comp
+L power:GND #PWR0133
+U 1 1 613A4EC9
+P 5850 10250
+F 0 "#PWR0133" H 5850 10000 50  0001 C CNN
+F 1 "GND" H 5850 10100 50  0000 C CNN
+F 2 "" H 5850 10250 50  0001 C CNN
+F 3 "" H 5850 10250 50  0001 C CNN
+	1    5850 10250
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	5850 9550 5850 10250
+Text GLabel 5150 9650 0    50   Input ~ 0
+ESP_MISO
+Text GLabel 5150 9250 0    50   Input ~ 0
+MOSI
+$Comp
+L power:+3.3V #PWR0134
+U 1 1 6146D5B8
+P 6200 8500
+F 0 "#PWR0134" H 6200 8350 50  0001 C CNN
+F 1 "+3.3V" H 6200 8640 50  0000 C CNN
+F 2 "" H 6200 8500 50  0001 C CNN
+F 3 "" H 6200 8500 50  0001 C CNN
+	1    6200 8500
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	6350 9350 6200 9350
+Wire Wire Line
+	6200 9350 6200 8600
+$Comp
+L Device:R R18
+U 1 1 614A2497
+P 5900 8850
+F 0 "R18" H 5970 8896 50  0000 L CNN
+F 1 "10K" H 5970 8805 50  0000 L CNN
+F 2 "Resistors_SMD:R_0805_HandSoldering" V 5830 8850 50  0001 C CNN
+F 3 "~" H 5900 8850 50  0001 C CNN
+	1    5900 8850
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	6350 9050 5900 9050
+Wire Wire Line
+	5900 9050 5900 9000
+Wire Wire Line
+	6200 8600 5900 8600
+Wire Wire Line
+	5900 8600 5900 8700
+Connection ~ 6200 8600
+Wire Wire Line
+	6200 8600 6200 8500
+Text GLabel 5150 9150 0    50   Input ~ 0
+CS_SD
+$Comp
+L Device:R R19
+U 1 1 616768AE
+P 5600 8850
+F 0 "R19" H 5670 8896 50  0000 L CNN
+F 1 "10K" H 5670 8805 50  0000 L CNN
+F 2 "Resistors_SMD:R_0805_HandSoldering" V 5530 8850 50  0001 C CNN
+F 3 "~" H 5600 8850 50  0001 C CNN
+	1    5600 8850
+	1    0    0    -1  
+$EndComp
+Connection ~ 5900 8600
+Wire Wire Line
+	5600 8600 5600 8700
+Wire Wire Line
+	5600 8600 5900 8600
+Wire Wire Line
+	5600 9000 5600 9150
+Wire Wire Line
+	5600 9150 6350 9150
+Wire Wire Line
+	5150 9150 5600 9150
+Connection ~ 5600 9150
+Wire Wire Line
+	5150 9250 6350 9250
+Wire Wire Line
+	5150 9650 6350 9650
+$Comp
+L Device:R R20
+U 1 1 6181FD12
+P 5300 8850
+F 0 "R20" H 5370 8896 50  0000 L CNN
+F 1 "10K" H 5370 8805 50  0000 L CNN
+F 2 "Resistors_SMD:R_0805_HandSoldering" V 5230 8850 50  0001 C CNN
+F 3 "~" H 5300 8850 50  0001 C CNN
+	1    5300 8850
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	5300 8700 5300 8600
+Wire Wire Line
+	5300 8600 5600 8600
+Connection ~ 5600 8600
+Wire Wire Line
+	5300 9000 5300 9750
+Wire Wire Line
+	5300 9750 6350 9750
+Text GLabel 5150 9450 0    50   Input ~ 0
+SCK
+Wire Wire Line
+	5150 9450 6350 9450
+$Comp
+L power:+5V #PWR0135
+U 1 1 619A36B4
+P 5850 6750
+F 0 "#PWR0135" H 5850 6600 50  0001 C CNN
+F 1 "+5V" H 5865 6923 50  0000 C CNN
+F 2 "" H 5850 6750 50  0001 C CNN
+F 3 "" H 5850 6750 50  0001 C CNN
+	1    5850 6750
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	6300 6750 6300 6850
+Wire Wire Line
+	6450 6850 6300 6850
+Connection ~ 6300 6850
+Wire Wire Line
+	6300 6850 6300 7300
+Wire Wire Line
+	6450 6950 5850 6950
+Wire Wire Line
+	5850 6750 5850 6950
 $EndSCHEMATC
