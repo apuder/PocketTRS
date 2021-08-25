@@ -1080,7 +1080,7 @@ VGA_HSYNC
 Text GLabel 13750 3500 0    50   Input ~ 0
 MOSI
 Text GLabel 15050 3300 2    50   Input ~ 0
-MISO
+ESP_MISO
 Text GLabel 13750 3400 0    50   Input ~ 0
 SCK
 $Comp
@@ -2033,9 +2033,9 @@ F 3 "" H 5850 10250 50  0001 C CNN
 $EndComp
 Wire Wire Line
 	5850 9550 5850 10250
-Text GLabel 5150 9650 0    50   Input ~ 0
+Text GLabel 4850 9650 0    50   Input ~ 0
 ESP_MISO
-Text GLabel 5150 9250 0    50   Input ~ 0
+Text GLabel 4850 9250 0    50   Input ~ 0
 MOSI
 $Comp
 L power:+3.3V #PWR0134
@@ -2074,7 +2074,7 @@ Wire Wire Line
 Connection ~ 6200 8600
 Wire Wire Line
 	6200 8600 6200 8500
-Text GLabel 5150 9150 0    50   Input ~ 0
+Text GLabel 4850 9150 0    50   Input ~ 0
 CS_SD
 $Comp
 L Device:R R19
@@ -2096,13 +2096,7 @@ Wire Wire Line
 	5600 9000 5600 9150
 Wire Wire Line
 	5600 9150 6350 9150
-Wire Wire Line
-	5150 9150 5600 9150
 Connection ~ 5600 9150
-Wire Wire Line
-	5150 9250 6350 9250
-Wire Wire Line
-	5150 9650 6350 9650
 $Comp
 L Device:R R20
 U 1 1 6181FD12
@@ -2123,10 +2117,8 @@ Wire Wire Line
 	5300 9000 5300 9750
 Wire Wire Line
 	5300 9750 6350 9750
-Text GLabel 5150 9450 0    50   Input ~ 0
+Text GLabel 4850 9450 0    50   Input ~ 0
 SCK
-Wire Wire Line
-	5150 9450 6350 9450
 $Comp
 L power:+5V #PWR0135
 U 1 1 619A36B4
@@ -2149,4 +2141,33 @@ Wire Wire Line
 	6450 6950 5850 6950
 Wire Wire Line
 	5850 6750 5850 6950
+Wire Wire Line
+	4850 9150 5600 9150
+Wire Wire Line
+	4850 9250 5000 9250
+Wire Wire Line
+	4850 9450 6350 9450
+Wire Wire Line
+	4850 9650 6350 9650
+$Comp
+L Device:R R21
+U 1 1 6136EADA
+P 5000 8850
+F 0 "R21" H 5070 8896 50  0000 L CNN
+F 1 "10K" H 5070 8805 50  0000 L CNN
+F 2 "Resistors_SMD:R_0805_HandSoldering" V 4930 8850 50  0001 C CNN
+F 3 "~" H 5000 8850 50  0001 C CNN
+	1    5000 8850
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	5300 8600 5000 8600
+Wire Wire Line
+	5000 8600 5000 8700
+Connection ~ 5300 8600
+Wire Wire Line
+	5000 9000 5000 9250
+Connection ~ 5000 9250
+Wire Wire Line
+	5000 9250 6350 9250
 $EndSCHEMATC
