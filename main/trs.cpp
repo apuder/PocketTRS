@@ -201,6 +201,9 @@ void z80_reset(ushort entryAddr)
 void z80_reset()
 {
   Z80RESET(&z80ctx);
+  mem_init();
+  trs_screen.setMode(MODE_TEXT_64x16);
+  trs_screen.refresh();
 }
 
 void z80_run()
