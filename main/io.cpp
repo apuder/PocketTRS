@@ -109,11 +109,6 @@ void z80_out(uint8_t address, uint8_t data, tstate_t z80_state_t_count)
       trs_cassette_out(data & 3, z80_state_t_count);
       return;
   }
-#if 1
-  if ((address & 0xc0) == 0xc0) {
-    printf("out(0x%02X, 0x%02X)\n", address, data);
-  }
-#endif
 
   if (settingsTrsIO.isEnabled()) {
     if ((address & 0xc0) == 0xc0) {
@@ -128,6 +123,12 @@ void z80_out(uint8_t address, uint8_t data, tstate_t z80_state_t_count)
     // Ignore
     return;
   }
+
+#if 1
+  if ((address & 0xc0) == 0xc0) {
+    printf("out(0x%02X, 0x%02X)\n", address, data);
+  }
+#endif
 
   // Route request to external I/O bus
 #ifndef DISABLE_IO
