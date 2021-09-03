@@ -5,21 +5,16 @@
 #include <driver/spi_master.h>
 #include <esp_log.h>
 #include <string.h>
+#include "trs-fs.h"
 #include "button.h"
 #include "config.h"
 #include "spi.h"
 
-#define MCP23S_CHIP_ADDRESS 0x40
 #define MCP23S_WRITE 0x00
 #define MCP23S_READ  0x01
 
-static spi_bus_config_t spi_bus;
-
-static spi_device_interface_config_t spi_mcp23S17;
-spi_device_handle_t spi_mcp23S17_h;
-
-static spi_device_interface_config_t spi_mcp23S08;
-spi_device_handle_t spi_mcp23S08_h;
+static spi_device_interface_config_t spi_mcp23x;
+spi_device_handle_t spi_mcp23x_h;
 
 static spi_device_interface_config_t spi_mcp4351;
 spi_device_handle_t spi_mcp4351_h;
@@ -27,22 +22,22 @@ spi_device_handle_t spi_mcp4351_h;
 static xQueueHandle gpio_evt_queue = NULL;
 
 
-void writePortExpander(spi_device_handle_t dev, uint8_t cmd, uint8_t data)
+void writePortExpander(uint8_t addr, uint8_t cmd, uint8_t data)
 {
   spi_transaction_t trans;
 
   memset(&trans, 0, sizeof(spi_transaction_t));
   trans.flags = SPI_TRANS_USE_TXDATA;
   trans.length = 3 * 8;   		// 3 bytes
-  trans.tx_data[0] = MCP23S_CHIP_ADDRESS | MCP23S_WRITE;
+  trans.tx_data[0] = 0x40 | (addr << 1) | MCP23S_WRITE;
   trans.tx_data[1] = cmd;
   trans.tx_data[2] = data;
 
-  esp_err_t ret = spi_device_transmit(dev, &trans);
+  esp_err_t ret = spi_device_transmit(spi_mcp23x_h, &trans);
   ESP_ERROR_CHECK(ret);
 }
 
-uint8_t readPortExpander(spi_device_handle_t dev, uint8_t reg)
+uint8_t readPortExpander(uint8_t addr, uint8_t reg)
 {
   spi_transaction_t trans;
 
@@ -50,11 +45,11 @@ uint8_t readPortExpander(spi_device_handle_t dev, uint8_t reg)
   trans.flags = SPI_TRANS_USE_TXDATA | SPI_TRANS_USE_RXDATA;
   trans.length = 3 * 8;   		// 3 bytes
   trans.rxlength = 0;
-  trans.tx_data[0] = MCP23S_CHIP_ADDRESS | MCP23S_READ;
+  trans.tx_data[0] = 0x40 | (addr << 1) | MCP23S_READ;
   trans.tx_data[1] = reg;
   trans.tx_data[2] = 0;
 
-  esp_err_t ret = spi_device_transmit(dev, &trans);
+  esp_err_t ret = spi_device_transmit(spi_mcp23x_h, &trans);
   ESP_ERROR_CHECK(ret);
 
   return trans.rx_data[2];
@@ -133,6 +128,9 @@ void wire_test_port_expander()
   not_found |= readPortExpander(MCP23S17, MCP23S17_IODIRA) != 0xff;
   not_found |= readPortExpander(MCP23S17, MCP23S17_IPOLA) != 0x00;
   not_found |= readPortExpander(MCP23S17, MCP23S17_GPINTENA) != 0x00;
+  not_found |= readPortExpander(MCP23S17, MCP23S17_IODIRB) != 0xff;
+  not_found |= readPortExpander(MCP23S17, MCP23S17_IPOLB) != 0x00;
+  not_found |= readPortExpander(MCP23S17, MCP23S17_GPINTENB) != 0x00;
 
   if (not_found) {
     ESP_LOGE("SPI", "MCP23S17 not found");
@@ -145,6 +143,7 @@ void wire_test_port_expander()
   not_found |= readPortExpander(MCP23S08, MCP23S08_IODIR) != 0xff;
   not_found |= readPortExpander(MCP23S08, MCP23S08_IPOL) != 0x00;
   not_found |= readPortExpander(MCP23S08, MCP23S08_GPINTEN) != 0x00;
+
   if (not_found) {
     ESP_LOGE("SPI", "MCP23S08 not found");
   } else {
@@ -159,6 +158,10 @@ void wire_test_port_expander()
   uint8_t data = 0xff;
 
   while (1) {
+    if (is_button_pressed()) {
+      return;
+    }
+
     writePortExpander(MCP23S17, MCP23S17_GPIOA, data);
     writePortExpander(MCP23S17, MCP23S17_GPIOB, data);
     writePortExpander(MCP23S08, MCP23S08_GPIO, data);
@@ -196,20 +199,32 @@ static void wire_test_digital_pot()
   while (not_found) ;
 }
 
+static void test_sd_card()
+{
+  ESP_LOGI("SPI", "Testing SD card reader");
+  const char* err = init_trs_fs_posix();
+  if (err == NULL) {
+    ESP_LOGI("SPI", "SD card succefully mounted");
+  } else {
+    ESP_LOGE("SPI", "Error: %s", err);
+  }
+  while (true);
+}
+
 static void test()
 {
   ESP_LOGI("SPI", "PocketTRS SPI bus test");
   wire_test_digital_pot();
   wire_test_port_expander();
+  test_sd_card();
 }
 
 void init_spi()
 {
-#ifdef CONFIG_POCKET_TRS_TTGO_VGA32_SUPPORT
   spi_bus_config_t bus_cfg = {
-    .mosi_io_num = GPIO_NUM_12,
-    .miso_io_num = GPIO_NUM_2,
-    .sclk_io_num = GPIO_NUM_14,
+    .mosi_io_num = SPI_PIN_NUM_MOSI,
+    .miso_io_num = SPI_PIN_NUM_MISO,
+    .sclk_io_num = SPI_PIN_NUM_CLK,
     .quadwp_io_num = -1,
     .quadhd_io_num = -1,
     .max_transfer_sz = 4000,
@@ -218,51 +233,34 @@ void init_spi()
   if (ret != ESP_OK) {
     ESP_LOGE("SPI", "Failed to initialize bus");
   }
-#else
-  // Configure SPI bus
-  spi_bus.flags = SPICOMMON_BUSFLAG_MASTER;
-  spi_bus.sclk_io_num = SPI_PIN_NUM_CLK;
-  spi_bus.mosi_io_num = SPI_PIN_NUM_MOSI;
-  spi_bus.miso_io_num = SPI_PIN_NUM_MISO;
-  spi_bus.quadwp_io_num = -1;
-  spi_bus.quadhd_io_num = -1;
-  spi_bus.max_transfer_sz = 32;
-  esp_err_t ret = spi_bus_initialize(SPI_HOST_PE, &spi_bus, 0);
+
+#ifndef CONFIG_POCKET_TRS_TTGO_VGA32_SUPPORT
+  // Configure SPI device for MCP23S17 and MCP23S08
+  spi_mcp23x.address_bits = 0;
+  spi_mcp23x.command_bits = 0;
+  spi_mcp23x.dummy_bits = 0;
+  spi_mcp23x.mode = 0;
+  spi_mcp23x.duty_cycle_pos = 0;
+  spi_mcp23x.cs_ena_posttrans = 0;
+  spi_mcp23x.cs_ena_pretrans = 0;
+  spi_mcp23x.clock_speed_hz = SPI_PORT_EXP_SPEED_MHZ * 1000 * 1000;
+  spi_mcp23x.spics_io_num = SPI_PIN_NUM_CS_MCP23X;
+  spi_mcp23x.flags = 0;
+  spi_mcp23x.queue_size = 1;
+  spi_mcp23x.pre_cb = NULL;
+  spi_mcp23x.post_cb = NULL;
+  ret = spi_bus_add_device(HSPI_HOST, &spi_mcp23x, &spi_mcp23x_h);
   ESP_ERROR_CHECK(ret);
 
-  // Configure SPI device for MCP23S17
-  spi_mcp23S17.address_bits = 0;
-  spi_mcp23S17.command_bits = 0;
-  spi_mcp23S17.dummy_bits = 0;
-  spi_mcp23S17.mode = 0;
-  spi_mcp23S17.duty_cycle_pos = 0;
-  spi_mcp23S17.cs_ena_posttrans = 0;
-  spi_mcp23S17.cs_ena_pretrans = 0;
-  spi_mcp23S17.clock_speed_hz = SPI_PORT_EXP_SPEED_MHZ * 1000 * 1000;
-  spi_mcp23S17.spics_io_num = SPI_PIN_NUM_CS_MCP23S17;
-  spi_mcp23S17.flags = 0;
-  spi_mcp23S17.queue_size = 1;
-  spi_mcp23S17.pre_cb = NULL;
-  spi_mcp23S17.post_cb = NULL;
-  ret = spi_bus_add_device(SPI_HOST_PE, &spi_mcp23S17, &spi_mcp23S17_h);
-  ESP_ERROR_CHECK(ret);
-
-  // Configure SPI device for MCP23S08
-  spi_mcp23S08.address_bits = 0;
-  spi_mcp23S08.command_bits = 0;
-  spi_mcp23S08.dummy_bits = 0;
-  spi_mcp23S08.mode = 0;
-  spi_mcp23S08.duty_cycle_pos = 0;
-  spi_mcp23S08.cs_ena_posttrans = 0;
-  spi_mcp23S08.cs_ena_pretrans = 0;
-  spi_mcp23S08.clock_speed_hz = SPI_PORT_EXP_SPEED_MHZ * 1000 * 1000;
-  spi_mcp23S08.spics_io_num = SPI_PIN_NUM_CS_MCP23S08;
-  spi_mcp23S08.flags = 0;
-  spi_mcp23S08.queue_size = 1;
-  spi_mcp23S08.pre_cb = NULL;
-  spi_mcp23S08.post_cb = NULL;
-  ret = spi_bus_add_device(SPI_HOST_PE, &spi_mcp23S08, &spi_mcp23S08_h);
-  ESP_ERROR_CHECK(ret);
+  /*
+   * The MCP23S17 and MCPS08 share the same CS line. By default, hardware addressing is disabled
+   * for both chips (IOCON.HAEN == 0) and must be enabled. The first writePortExpander() command
+   * is processed by both MCPs. However, MCP23S17_IOCONB is beyond the number of registers of the
+   * MCP23S08 and will therefore be ignored by that chip. Once hardware addressing is enabled
+   * for the MCP23S17, the same is done for the MCP23S08.
+   */
+  writePortExpander(MCP23S17, MCP23S17_IOCONB, 1 << 3);
+  writePortExpander(MCP23S08, MCP23S08_IOCON, 1 << 3);
 
   // Configure ESP's MCP23S08 INT
   gpio_config_t io_conf;
@@ -295,15 +293,11 @@ void init_spi()
   spi_mcp4351.queue_size = 1;
   spi_mcp4351.pre_cb = NULL;
   spi_mcp4351.post_cb = NULL;
-  ret = spi_bus_add_device(SPI_HOST_PE, &spi_mcp4351, &spi_mcp4351_h);
+  ret = spi_bus_add_device(HSPI_HOST, &spi_mcp4351, &spi_mcp4351_h);
   ESP_ERROR_CHECK(ret);
 
 #ifdef CONFIG_POCKET_TRS_TEST_PCB
   test();
-#else
-  if (is_button_pressed()) {
-    test();
-  }
 #endif
 
   /*

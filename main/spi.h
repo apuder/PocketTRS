@@ -2,18 +2,14 @@
 #ifndef __SPI_H__
 #define __SPI_H__
 
-#include <driver/spi_master.h>
 #include <stdint.h>
 
-#define MCP_GPIO_SDA 17
-#define MCP_GPIO_SCL 16
+#define MCP23S17 1
+#define MCP23S08 0
 
 /*
  * MCP23S17
  */
-#define MCP23S17 spi_mcp23S17_h
-extern spi_device_handle_t spi_mcp23S17_h;
-
 #define MCP23S17_IODIRA 0x00
 #define MCP23S17_IPOLA 0x02
 #define MCP23S17_GPINTENA 0x04
@@ -42,9 +38,6 @@ extern spi_device_handle_t spi_mcp23S17_h;
 /*
  * MCP23S08
  */
-#define MCP23S08 spi_mcp23S08_h
-extern spi_device_handle_t spi_mcp23S08_h;
-
 #define MCP23S08_IODIR 0x00
 #define MCP23S08_IPOL 0x01
 #define MCP23S08_GPINTEN 0x02
@@ -65,8 +58,8 @@ extern spi_device_handle_t spi_mcp23S08_h;
 #define ACK_VAL 0x0
 #define NACK_VAL 0x1
 
-void writePortExpander(spi_device_handle_t dev, uint8_t cmd, uint8_t data);
-uint8_t readPortExpander(spi_device_handle_t dev, uint8_t reg);
+void writePortExpander(uint8_t addr, uint8_t cmd, uint8_t data);
+uint8_t readPortExpander(uint8_t addr, uint8_t reg);
 void writeDigiPot(uint8_t pot, uint8_t step);
 
 void init_spi();
