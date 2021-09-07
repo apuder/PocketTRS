@@ -1,0 +1,8 @@
+(sym_lib_table
+  (lib (name ESP32-WROVER-B)(type Legacy)(uri ${KIPRJMOD}/ESP32-WROVER-B.lib)(options "")(descr ""))
+  (lib (name MCP23008-E-P-ND)(type Legacy)(uri ${KIPRJMOD}/MCP23008-E-P-ND.lib)(options "")(descr ""))
+  (lib (name PocketTRS-rescue)(type Legacy)(uri ${KIPRJMOD}/PocketTRS-rescue.lib)(options "")(descr ""))
+  (lib (name MCP4251-SPI)(type Legacy)(uri ${KIPRJMOD}/MCP4251-SPI.lib)(options "")(descr "")(disabled))
+  (lib (name MCP43X1)(type Legacy)(uri ${KIPRJMOD}/MCP43X1.lib)(options "")(descr ""))
+  (lib (name SDCard)(type Legacy)(uri ${KIPRJMOD}/SDCard.lib)(options "")(descr ""))
+)
