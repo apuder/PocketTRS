@@ -38,15 +38,16 @@ This repository contains the complete KiCad and Gerber files for PocketTRS. The 
 7. Z80 reset button
 8. 50-pin expansion interface
 
-The BOM contains all required parts. Soldering surface mounted components can be tricky. It is suggested to build up the PCB in a particular order and test the board along each step. PocketTRS contains some test code that helps with the diagnosis. The test code can be activated at compile-time via `idf.py menuconfig > Component config > PocketTRS > Run PocketTRS PCB tests`. The test code can also be activated at runtime with a regular PocketTRS firmware by holding down the 'PTRS RST' button at boot time. When the PCB tests are activated, diagnostics will be printed to the log that can be viewed via `idf.py -p <port> monitor`.
+The BOM contains all required parts. Soldering surface mounted components can be tricky. It is suggested to build up the PCB in a particular order and test the board along each step. PocketTRS contains some test code that helps with the diagnostics. The test code can be activated at compile-time via `idf.py menuconfig > Component config > PocketTRS > Run PocketTRS PCB tests`. When the PCB tests are activated, diagnostics will be printed to the log that can be viewed via `idf.py -p <port> monitor`. The following steps refer to PocketTRS V2.3:
 
 | Step | Components | Comments |
 |---|---|---|
 | 1 | J6, U4, C4, C5, C11 | Connect power via the Micro-USB adapter. Confirm 5V on J5, pin 5. Confirm 3.3V on U1, pin 2. Disconnect power. Note: for polarized caps the dot on the silkscreen indicates the positive terminal. |
 | 2 | Q2, Q3, R12, R13, R14, R15, R16, C9, C10, J5, SW1, U1 | It should be possible to flash the ESP firmware via a FTDI adapter with these components. The log should print `MCP4361 not found`. |
-| 3 | U5, C8, Q1, R10, R11 | Log should show `MCP4361 found` and `MCP23S17 not found`. Confirm 1V on pin 1, 2V on pin 2 and 3V on pin 3 of VGA adapter. |
-| 4 | U2, U3, C6, C7 | Log should show `MCP23S17 found` and `MCP23S08 found`. Measure the voltages of the odd pins of the 50-pin connector (except pin 45). The voltages should alternate between 0V and 5V every second. Permanent 0V indicates that a pin is not properly connected. A permanent 0.7V indicates that two neighboring pins are shorted. |
-| 5 | The rest | Solder the remaining components. First add the surface mounted components followed by the various connectors. |
+| 3 | U5, C8 | Log should show `MCP4361 found` and `MCP23S17 not found`. Confirm 1V on pin 1, 2V on pin 2 and 3V on pin 3 of VGA adapter. |
+| 4 | U2, U3, Q1, R10, R11, C6, C7 | Log should show `MCP23S17 found` and `MCP23S08 found`. Measure the voltages of the odd pins of the 50-pin connector (except pin 45). The voltages should alternate between 0V and 5V every second. Permanent 0V indicates that a pin is not properly connected. A permanent 0.7V indicates that two neighboring pins are shorted. |
+| 5 | J3, R7, R8, R9, R10 | Insert a formatted SD card into the SD card reader and press the 'PTRS RST' button after booting. The log should print `SD card succefully mounted`. |
+| 6 | The rest | Solder the remaining components. First add the surface mounted components followed by the various connectors. |
 
 
 ### Usage
