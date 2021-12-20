@@ -53,7 +53,7 @@ void configure()
   settingsTrsIO.setEnabled(enable_trs_io);
 
   if (smb_url->dirty || smb_user->dirty || smb_passwd->dirty) {
-    init_trs_fs(config->smb_url, config->smb_user, config->smb_passwd);
+    init_trs_fs_smb(config->smb_url, config->smb_user, config->smb_passwd);
   }
 
   if (tz->dirty) {

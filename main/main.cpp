@@ -18,6 +18,7 @@
 #include "freertos/task.h"
 
 #include "trs-io.h"
+#include "trs-fs.h"
 #include "ntp_sync.h"
 
 
@@ -39,6 +40,7 @@ void setup() {
   init_settings();
   trs_screen.init();
   show_splash();
+  init_trs_fs_posix();
   init_wifi();
   vTaskDelay(5000 / portTICK_PERIOD_MS);
   //settingsCalibration.setScreenOffset();
