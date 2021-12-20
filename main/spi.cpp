@@ -303,10 +303,10 @@ void init_spi()
   /*
    * MCP23S17 configuration
    */
-  // Port A is connected to D0-D7. Configure as input. Disable pull-ups.
+  // Port A is connected to D0-D7. Configure as input. Enable pull-ups.
   // Disable interrupts
   writePortExpander(MCP23S17, MCP23S17_IODIRA, 0xff);
-  writePortExpander(MCP23S17, MCP23S17_GPPUA, 0);
+  writePortExpander(MCP23S17, MCP23S17_GPPUA, 0xff);
   writePortExpander(MCP23S17, MCP23S17_GPINTENA, 0);
   // Port B is connected to A0-A7. Configure as output. Set 0 as initial address
   writePortExpander(MCP23S17, MCP23S17_IODIRB, 0);
