@@ -203,6 +203,7 @@ void z80_reset()
   Z80RESET(&z80ctx);
   mem_init();
   trs_screen.setMode(MODE_TEXT_64x16);
+  trs_screen.setInverse(false);
   trs_screen.refresh();
 }
 
