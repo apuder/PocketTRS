@@ -51,6 +51,7 @@
 #define MCP23S08_OLAT 0x0a
 
 #define MCP23S08_ODR (1 << 2)
+#define MCP23S08_HAEN (1 << 3)
 
 
 #define ACK_CHECK_EN 0x1

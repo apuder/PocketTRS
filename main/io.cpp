@@ -111,11 +111,7 @@ void z80_out(uint8_t address, uint8_t data, tstate_t z80_state_t_count)
   }
 #if 0
   if ((address & 0xc0) == 0xc0) {
-    Serial.print("out(");
-    Serial.print(address);
-    Serial.print(",");
-    Serial.print(data);
-    Serial.println(")");
+    printf("out(0x%02X, 0x%02X)\n", address, data);
   }
 #endif
 
@@ -215,10 +211,7 @@ uint8_t z80_in(uint8_t address, tstate_t z80_state_t_count)
   writePortExpander(MCP23S08, MCP23S08_GPIO, 0xff);
 #if 0
   if ((address & 0xc0) == 0xc0) {
-    Serial.print("in(");
-    Serial.print(address);
-    Serial.print("): 0x");
-    Serial.println(data, HEX);
+    printf("in(0x%02X): 0x%02X\n", address, data);
   }
 #endif
   return data;

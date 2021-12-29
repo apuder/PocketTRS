@@ -155,7 +155,7 @@ void wire_test_port_expander()
   writePortExpander(MCP23S17, MCP23S17_IODIRB, 0);
   writePortExpander(MCP23S08, MCP23S08_IODIR, 0);
 
-  uint8_t data = 0xff;
+  uint8_t data = 0xaa;
 
   while (1) {
     if (is_button_pressed()) {
@@ -259,8 +259,8 @@ void init_spi()
    * MCP23S08 and will therefore be ignored by that chip. Once hardware addressing is enabled
    * for the MCP23S17, the same is done for the MCP23S08.
    */
-  writePortExpander(MCP23S17, MCP23S17_IOCONB, 1 << 3);
-  writePortExpander(MCP23S08, MCP23S08_IOCON, 1 << 3);
+  writePortExpander(MCP23S17, MCP23S17_IOCONB, MCP23S08_HAEN);
+  writePortExpander(MCP23S08, MCP23S08_IOCON, MCP23S08_HAEN);
 
   // Configure ESP's MCP23S08 INT
   gpio_config_t io_conf;
@@ -320,7 +320,7 @@ void init_spi()
   // Enable pull-ups
   writePortExpander(MCP23S08, MCP23S08_GPPU, 0xff);
   // Configure INT as open drain
-  writePortExpander(MCP23S08, MCP23S08_IOCON, MCP23S08_ODR);
+  writePortExpander(MCP23S08, MCP23S08_IOCON, MCP23S08_ODR | MCP23S08_HAEN);
 #if 0
   // Generate interrupt on pin change
   writePortExpander(MCP23S08, MCP23S08_INTCON, 0);
