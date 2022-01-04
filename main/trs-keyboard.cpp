@@ -25,6 +25,25 @@ Address   1     2     4     8     16     32     64     128    Hex Address
 14464  shift    -     -     -  control    -      -      -        3880     128    8
 */
 
+/* Full Model 4 keyboard:
+Address   1     2     4     8     16     32     64     128    Hex Address
+------- ----- ----- ----- ----- -----  -----  -----   -----   -----------
+14337     @     A     B     C      D      E      F      G        3801       1    1
+14338     H     I     J     K      L      M      N      O        3802       2    2
+14340     P     Q     R     S      T      U      V      W        3804       4    3
+14344     X     Y     Z     ,      -      -      -      -        3808       8    4
+14352     0     1!    2"    3#     4$     5%     6&     7'       3810      16    5
+14368     8(    9)   *:    +;     <,     =-     >.     ?/        3820      32    6
+14400  enter  clear break  up    down   left  right  space       3840      64    7
+14464  Lshift Rshft contrl caps   F1     F2     F3      -        3880     128    8
+
+Additionally:
+Shift-0 is now F4
+Clear is on home,\
+config is on F5
+screenshot on F6
+*/
+
 static const TRSKey trsKeys[] = {
   {0, 0}, // VK_NONE
   {7, 128}, // VK_SPACE
@@ -111,7 +130,7 @@ static const TRSKey trsKeys[] = {
   {6, 8}, //  VK_KP_PLUS
   {6, 4}, //  VK_KP_MULTIPLY
   {6, 4}, //  VK_ASTERISK
-  {0, 0}, //  VK_BACKSLASH
+  {7, 2}, //  VK_BACKSLASH
   {6, 128}, //  VK_KP_DIVIDE
   {6, 128}, //  VK_SLASH
   {6, 64}, //  VK_KP_PERIOD
@@ -144,11 +163,11 @@ static const TRSKey trsKeys[] = {
   {0, 0}, //  VK_TILDE
   {0, 0}, //  VK_NEGATION
   {8, 1}, //  VK_LSHIFT
-  {8, 1}, //  VK_RSHIFT
+  {8, 2}, //  VK_RSHIFT
   {0, 0}, //  VK_LALT
   {0, 0}, //  VK_RALT
-  {8, 16}, //  VK_LCTRL
-  {8, 16}, //  VK_RCTRL
+  {8, 4}, //  VK_LCTRL
+  {8, 4}, //  VK_RCTRL
   {0, 0}, //  VK_LGUI
   {0, 0}, //  VK_RGUI
   {7, 4}, //  VK_ESCAPE
@@ -159,7 +178,7 @@ static const TRSKey trsKeys[] = {
   {0, 0}, //  VK_DELETE
   {0, 0}, //  VK_KP_DELETE
   {7, 32}, //  VK_BACKSPACE
-  {0, 0}, //  VK_HOME
+  {7, 2}, //  VK_HOME
   {0, 0}, //  VK_KP_HOME
   {0, 0}, //  VK_END
   {0, 0}, //  VK_KP_END
@@ -167,7 +186,7 @@ static const TRSKey trsKeys[] = {
   {7, 4}, //  VK_BREAK
   {0, 0}, //  VK_SCROLLLOCK
   {0, 0}, //  VK_NUMLOCK
-  {0, 0}, //  VK_CAPSLOCK
+  {8, 8}, //  VK_CAPSLOCK
   {0, 0}, //  VK_TAB
   {7, 1}, //  VK_RETURN
   {7, 1}, //  VK_KP_ENTER
@@ -185,10 +204,10 @@ static const TRSKey trsKeys[] = {
   {7, 64}, //  VK_RIGHT
   {7, 64}, //  VK_KP_RIGHT
   {0, 0}, //  VK_KP_CENTER
-  {5, ADD_SHIFT_KEY | 1}, //  VK_F1
-  {7, 2}, //  VK_F2
-  {0, 0}, //  VK_F3
-  {0, 0}, //  VK_F4
+  {8, 16}, //  VK_F1
+  {8, 32}, //  VK_F2
+  {8, 64}, //  VK_F3
+  {5, ADD_SHIFT_KEY | 1}, //  VK_F4
   {0, 0}, //  VK_F5
   {0, 0}, //  VK_F6
   {0, 0}, //  VK_F7
