@@ -77,6 +77,25 @@ extern SettingsScreen settingsScreen;
 
 
 /****************************************************************
+ * SettingsROM
+ ****************************************************************/
+
+enum rom_type_t {
+    ROM_FREHD = 0,
+    ROM_XROM
+};
+
+class SettingsROM : public virtual SettingsBase {
+    public:
+    void init();
+    rom_type_t getROMType();
+    void setROMType(rom_type_t rom);
+};
+
+extern SettingsROM settingsROM;
+
+
+/****************************************************************
  * SettingsTrsIO
  ****************************************************************/
 

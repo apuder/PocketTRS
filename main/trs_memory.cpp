@@ -54,6 +54,9 @@
 #include <assert.h>
 
 #include "rom/model3-frehd.cpp-inc"
+#include "rom/model3-xrom.cpp-inc"
+
+#include "settings.h"
 
 //#define SUPERMEM 1
 
@@ -547,3 +550,32 @@ void mem_write_word(int address, int value)
     mem_write(address++, value & 0xff);
     mem_write(address, value >> 8);
 }
+
+
+//----------------------------------------------------------------
+
+static const char* KEY_ROM_TYPE = "rom";
+
+
+void SettingsROM::init() {
+  switch(getROMType()) {
+  case ROM_FREHD:
+    rom = model3_frehd_rom;
+    trs_rom_size = model3_frehd_rom_len;
+    break;
+  case ROM_XROM:
+    rom = model3_xrom;
+    trs_rom_size = model3_xrom_len;
+    break;
+  }
+}
+
+rom_type_t SettingsROM::getROMType() {
+  return (rom_type_t) nvs_get_u8(KEY_ROM_TYPE);
+}
+
+void SettingsROM::setROMType(rom_type_t rom) {
+  nvs_set_u8(KEY_ROM_TYPE, rom);
+}
+
+SettingsROM settingsROM;

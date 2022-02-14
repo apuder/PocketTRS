@@ -10,6 +10,7 @@ void init_settings()
 {
   SettingsBase::init();
   settingsScreen.init();
+  settingsROM.init();
   settingsTrsIO.init();
   settingsSplashScreen.init();
   settingsCalibration.init();
