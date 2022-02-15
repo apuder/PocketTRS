@@ -46,7 +46,7 @@ The BOM contains all required parts. Soldering surface mounted components can be
 | 2 | Q2, Q3, R12, R13, R14, R15, R16, C9, C10, J5, SW1, U1 | It should be possible to flash the ESP firmware via a FTDI adapter with these components. The log should print `MCP4361 not found`. |
 | 3 | U5, C8 | Log should show `MCP4361 found` and `MCP23S17 not found`. Confirm 1V on pin 1, 2V on pin 2 and 3V on pin 3 of VGA adapter. |
 | 4 | U2, U3, Q1, R10, R11, C6, C7 | Log should show `MCP23S17 found` and `MCP23S08 found`. Measure the voltages of the odd pins of the 50-pin connector (except pin 45). The voltages should alternate between 0V and 5V every second. Permanent 0V indicates that a pin is not properly connected. A permanent 0.7V indicates that two neighboring pins are shorted. |
-| 5 | J3, R7, R8, R9, R10 | Insert a formatted SD card into the SD card reader and press the 'PTRS RST' button after booting. The log should print `SD card succefully mounted`. |
+| 5 | J8, R7, R8, R9, R10 | Insert a formatted SD card into the SD card reader and press the 'PTRS RST' button after booting. The log should print `SD card succefully mounted`. |
 | 6 | The rest | Solder the remaining components. First add the surface mounted components followed by the various connectors. |
 
 
@@ -54,14 +54,14 @@ The BOM contains all required parts. Soldering surface mounted components can be
 
 Once the PocketTRS card is assembled, connect a VGA monitor, a PS/2 keyboard and optinally a speaker to the audio jack. Power up PocketTRS via the micro-USB connector. You should see the TRS-80 `Cass?` prompt on the monitor. After booting PocketTRS, the following hotkeys are available via the PS/2 keyboard:
 
-* &lt;F1&gt;  - Enable lowercase
-* &lt;F2&gt;  - TRS-80 &lt;CLEAR&gt; key
-* &lt;F3&gt;  - PocketTRS Configuration
-* &lt;F4&gt;  - Send screenshot to the printer
+* &lt;F4&gt;  - Enable lowercase
+* &lt;F5&gt;  - PocketTRS Configuration
+* &lt;F6&gt;  - Send screenshot to the printer
 * &lt;F9&gt;  - Reset Z80
 * &lt;ESC&gt; - TRS-80 &lt;BREAK&gt; key
+* '\\'         - TRS-80 &lt;CLEAR&gt; key
 
-&lt;F3&gt; allows the configuration of various aspects of PocketTRS, including setting up Wifi credentials and TRS-IO. Once Wifi is setup, the printer interface can be accessed via <a href="trs-io.local/printer">trs-io.local/printer</a>.
+&lt;F5&gt; allows the configuration of various aspects of PocketTRS, including setting up Wifi credentials and TRS-IO. Once Wifi is setup, the printer interface can be accessed via <a href="trs-io.local/printer">trs-io.local/printer</a>.
 
 Use the configuration settings to activate TRS-IO. Alternatively it is possible to connect an external TRS-IO/FreHD card via the 50-pin expansion interface. In that case make sure that the internal TRS-IO is disabled.
 
