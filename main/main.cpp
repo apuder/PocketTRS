@@ -71,11 +71,11 @@ void loop() {
     bool down;
     auto vk = keyboard->getNextVirtualKey(&down);
     //printf("VirtualKey = %s\n", keyboard->virtualKeyToString(vk));
-    if (down && vk == fabgl::VK_F3 && trs_screen.isTextMode()) {
+    if (down && vk == fabgl::VK_F5 && trs_screen.isTextMode()) {
       configure_pocket_trs();
     } else if (down && vk == fabgl::VK_F9) {
       z80_reset();
-    } else if (down && vk == fabgl::VK_F4) {
+    } else if (down && vk == fabgl::VK_F6) {
       trs_screen.screenshot();
     } else {
       process_key(vk, down);
