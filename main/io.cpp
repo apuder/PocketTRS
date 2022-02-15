@@ -17,6 +17,7 @@
 static uint8_t modeimage = 8;
 static uint8_t port_0xe0 = 0b11110011;
 static uint8_t port_0xec = 0xff;
+static uint8_t last_c8 = 0x80;
 static int ctrlimage = 0;
 
 static void set_iodira(uint8_t dir)
@@ -144,6 +145,9 @@ void z80_out(uint8_t address, uint8_t data, tstate_t z80_state_t_count)
   // Release IORQ_N and OUT_N
   writePortExpander(MCP23S08, MCP23S08_GPIO, 0xff);
 #endif
+  if(address == 0xc8) {
+    last_c8 = data;
+  }
 }
 
 uint8_t z80_in(uint8_t address, tstate_t z80_state_t_count)
@@ -172,6 +176,8 @@ uint8_t z80_in(uint8_t address, tstate_t z80_state_t_count)
       }
     }
 #endif
+    case 0xF0:
+      return 0x34; // Fake an empty disk
     case 0xF8:
     case 0xF9:
     case 0xFA:
@@ -197,7 +203,10 @@ uint8_t z80_in(uint8_t address, tstate_t z80_state_t_count)
   }
 
   // Route interaction to external I/O bus
-
+  if((address == 0xcf) && !(last_c8 & 0x80)) {
+    z80_out(0xc8, last_c8 | 0x80, z80_state_t_count);
+  }
+  last_c8 |= 0x80;
   // Configure port A as input
   set_iodira(0xff);
   // Set the I/O address on port B
