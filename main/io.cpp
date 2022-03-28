@@ -120,14 +120,14 @@ void z80_out(uint8_t address, uint8_t data, tstate_t z80_state_t_count)
     if ((address & 0xc0) == 0xc0) {
       frehd_out(address, data);
       frehd_check_action();
+      return;
     } else if (address == 31) {
       if (!TrsIO::outZ80(data)) {
-	TrsIO::processInBackground();
-	port_0xe0 &= ~(1 << 3);
+        TrsIO::processInBackground();
+        port_0xe0 &= ~(1 << 3);
       }
+      return;
     }
-    // Ignore
-    return;
   }
 
   // Route request to external I/O bus
@@ -199,7 +199,6 @@ uint8_t z80_in(uint8_t address, tstate_t z80_state_t_count)
       port_0xe0 |= 1 << 3;
       return TrsIO::inZ80();
     }
-    return 0xff;
   }
 
   // Route interaction to external I/O bus

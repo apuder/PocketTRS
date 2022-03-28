@@ -57,96 +57,18 @@ void z80_mem_write(int param, ushort address, byte data)
 
 static byte z80_io_read(int param, ushort address)
 {
-  address &= 0xff;
-  switch(address) {
-  case 31:
-  case 0x82:
-  case 0xc0:
-  case 0xc1:
-  case 0xc2:
-  case 0xc3:
-  case 0xc4:
-  case 0xc5:
-  case 0xc6:
-  case 0xc7:
-  case 0xc8:
-  case 0xc9:
-  case 0xca:
-  case 0xcb:
-  case 0xcc:
-  case 0xcd:
-  case 0xce:
-  case 0xcf:
-  case 0xe0:
-  case 0xec:
-  case 0xF0:
-  case 0xF8:
-  case 0xF9:
-  case 0xFA:
-  case 0xFB:
-  case 0xff:
-    return z80_in(address, total_tstate_count);
-  default:
 #if 0
     printf("in(0x%02x)\n", address);
 #endif
-    return 255;
-  }
+  return z80_in(address & 0xff, total_tstate_count);
 }
 
 static void z80_io_write(int param, ushort address, byte data)
 {
-  address &= 0xff;
-  switch (address) {
-  case 31:
-  case 0x80:
-  case 0x81:
-  case 0x82:
-  case 0x83:
-  case 0x84:
-  case 0x85:
-  case 0x86:
-  case 0x87:
-  case 0xc0:
-  case 0xc1:
-  case 0xc2:
-  case 0xc3:
-  case 0xc4:
-  case 0xc5:
-  case 0xc6:
-  case 0xc7:
-  case 0xc8:
-  case 0xc9:
-  case 0xca:
-  case 0xcb:
-  case 0xcc:
-  case 0xcd:
-  case 0xce:
-  case 0xcf:
-  case 0xec:
-  case 0xed:
-  case 0xee:
-  case 0xef:
-  case 0xF8:
-  case 0xF9:
-  case 0xFA:
-  case 0xFB:
-  case 0xff:
-    z80_out(address, data, total_tstate_count);
-    break;
-
-    //XXX
-    case 0x8c:
-    case 0x8d:
-    case 0x8e:
-      printf("out(0x%02x): 0x%02x\n", address, data);
-      break;
-  default:
 #if 0
-    printf("out(0x%02x): 0x%02x\n", address, data);
+  printf("out(0x%02x): 0x%02x\n", address, data);
 #endif
-    break;
-  }
+  z80_out(address & 0xff, data, total_tstate_count);
 }
 
 static int get_ticks()
