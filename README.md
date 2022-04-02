@@ -66,3 +66,9 @@ Once the PocketTRS card is assembled, connect a VGA monitor, a PS/2 keyboard and
 Use the configuration settings to activate TRS-IO. Alternatively it is possible to connect an external TRS-IO/FreHD card via the 50-pin expansion interface. In that case make sure that the internal TRS-IO is disabled.
 
 For game sound, simply connect a speaker to the 3.5mm audio jack. It is also possible to load programs via the cassette interface (500 baud only). At the `Cass?` prompt hit 'L', connect PocketTRS audio jack to a laptop or smartphone, type `CLOAD` or `SYSTEM` in BASIC and play the 500 Baud audio file. You should see the blinking asterick in the top right corner.
+
+### Showcases
+
+The video below shows PocketTRS connected to a <a href="https://github.com/lambdamikel/Talker-80">Talker/80 card</a>:
+
+[![PocketTRS connected to Talker/80](https://img.youtube.com/vi/__6tL8iR-zk/0.jpg)](https://www.youtube.com/watch?v=__6tL8iR-zk)
