@@ -72,3 +72,8 @@ For game sound, simply connect a speaker to the 3.5mm audio jack. It is also pos
 The video below shows PocketTRS connected to a <a href="https://github.com/lambdamikel/Talker-80">Talker/80 card</a>:
 
 [![PocketTRS connected to Talker/80](https://img.youtube.com/vi/__6tL8iR-zk/0.jpg)](https://www.youtube.com/watch?v=__6tL8iR-zk)
+
+The next video shows PocketTRS booting from an external FreHD. Note that PocketTRS integrates TRS-IO and therefore also is compatible with FreHD, but
+for the purpose of the demo, the internal TRS-IO is disabled..
+
+[![PocketTRS connected to FreHD](https://img.youtube.com/vi/2HQh5efB2vM/0.jpg)](https://www.youtube.com/watch?v=2HQh5efB2vM)
