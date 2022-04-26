@@ -101,11 +101,8 @@ void z80_out(uint8_t address, uint8_t data, tstate_t z80_state_t_count)
     case 0xF9:
     case 0xFA:
     case 0xFB:
-      {
-        char buf[2] = {data, 0};
-        trs_printer_write(buf);
-        return;
-      }
+      trs_printer_write(data);
+      return;
     case 0xff:
       trs_cassette_out(data & 3, z80_state_t_count);
       return;
