@@ -164,17 +164,18 @@ uint8_t z80_in(uint8_t address, tstate_t z80_state_t_count)
     case 0xe0:
     {
       if (settingsTrsIO.isEnabled()) {
-	return port_0xe0;
+        return port_0xe0;
       } else {
-	// Bit 2 is 0 to signal that a RTC INT happened. See ROM address 0x35D8
-	uint8_t b = port_0xe0;
-	b |= (readPortExpander(MCP23S08, MCP23S08_GPIO) & TRS_IOBUSINT) ? (1 << 3) : 0;
-	return b;
+        // Bit 2 is 0 to signal that a RTC INT happened. See ROM address 0x35D8
+        uint8_t b = port_0xe0;
+        b |= (readPortExpander(MCP23S08, MCP23S08_GPIO) & TRS_IOBUSINT) ? (1 << 3) : 0;
+        return b;
       }
     }
 #endif
     case 0xF0:
-      return 0x34; // Fake an empty disk
+      // For the XROM, we fake an empty disk. For other ROMs we report no floppy present
+      return (settingsROM.getROMType() == ROM_XROM) ? 0x34 : 0xff;
     case 0xF8:
     case 0xF9:
     case 0xFA:
