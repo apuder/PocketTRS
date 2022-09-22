@@ -14,6 +14,8 @@ idf_component_register(SRC_DIRS ${TRS_IO}/libsmb2/lib
                                 ${TRS_IO}/retrostore
                                 ${TRS_IO}/trs-fs
                                 ${TRS_IO}/tcpip
+                                ${TRS_IO}/retrostore-c-sdk/main
+                                ${TRS_IO}/retrostore-c-sdk/main/proto
                        INCLUDE_DIRS ${TRS_IO}/libsmb2/include
                                     ${TRS_IO}/libsmb2/include/smb2
                                     ${TRS_IO}/libsmb2/lib
@@ -23,14 +25,18 @@ idf_component_register(SRC_DIRS ${TRS_IO}/libsmb2/lib
                                     ${TRS_IO}/retrostore/include
                                     ${TRS_IO}/trs-fs/include
                                     ${TRS_IO}/tcpip/include
-                       EMBED_TXTFILES ${TRS_IO}/trs-io/index.html
+                                    ${TRS_IO}/retrostore-c-sdk/main/include
+                                    ${TRS_IO}/retrostore-c-sdk/main/proto
+                        EMBED_TXTFILES ${TRS_IO}/trs-io/index.html
                                       ${TRS_IO}/trs-io/printer.html
                                       ${TRS_IO}/trs-io/AnotherMansTreasureMIII64C.ttf
                        EMBED_FILES ${TRS_IO}/retrostore/loader_basic.cmd
                                    ${TRS_IO}/retrostore/loader_cmd.bin
                                    ${TRS_IO}/retrostore/rsclient.cmd
+                                   ${TRS_IO}/trs-io/xray-load.bin
                        REQUIRES main
-                                mdns)
+                                mdns
+                                esp_http_client)
 
 # Force static linking of modules
 set_property(TARGET ${COMPONENT_LIB} APPEND PROPERTY INTERFACE_LINK_LIBRARIES "-u theTrsIOCoreModule")

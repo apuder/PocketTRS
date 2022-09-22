@@ -45,6 +45,7 @@
  * as the screen and keyboard.
  */
 
+#include "xray.h"
 #include "trs.h"
 #include "trs-keyboard.h"
 #include "trs_screen.h"
@@ -358,8 +359,14 @@ void mem_init()
 
 int mem_read(unsigned int address)
 {
+    uint8_t b;
+
     address &= 0xffff; /* allow callers to be sloppy */
  
+    if (xray_mem_read(address, &b)) {
+      return b;
+    }
+
     /* There are some adapters that sit above the system and
        either intercept before the hardware proper, or adjust
        the address. Deal with these first so that we take their
@@ -447,6 +454,10 @@ int mem_read(unsigned int address)
 void mem_write(unsigned int address, int value)
 {
     address &= 0xffff;
+
+    if (xray_mem_write(address, value)) {
+      return;
+    }
 
 #ifdef SUPERMEM
     /* The SuperMem sits between the system and the Z80 */
