@@ -150,6 +150,9 @@ void z80_out(uint8_t address, uint8_t data, tstate_t z80_state_t_count)
 uint8_t z80_in(uint8_t address, tstate_t z80_state_t_count)
 {
   switch(address) {
+    case 0:
+      // No joystick
+      return 0xff;
     case 0x82:
       return grafyx_read_data();
     case 0xec:
