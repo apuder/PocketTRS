@@ -57,11 +57,19 @@ bool xray_mem_read(uint16_t addr, uint8_t* byte)
   }
 
   if (addr == xray_base_addr) {
+    // XRAY debug stub ran once. Now we can copy the memory regions
     state_xray = STATE_XRAY_RUN;
     spi_clear_breakpoint(breakpoint_idx);
-    uint8_t* buf = trs_state.regions[1].data.get();
-    for (int i = 0; i < 32768; i++) {
-      mem_write(0x8000 + i, *buf++);
+    for (int i = 0; i < trs_state.regions.size(); i++) {
+      retrostore::RsMemoryRegion* region = &trs_state.regions[i];
+      if (region->start == 0x3c00) {
+        // Ignore screenshot
+        continue;
+      }
+      uint8_t* buf = region->data.get();
+      for (int j = 0; j < region->length; j++) {
+        mem_write(region->start + j, *buf++);
+      }
     }
     return false;
   }
