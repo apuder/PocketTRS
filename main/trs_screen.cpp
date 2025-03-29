@@ -24,7 +24,9 @@
 
 //----------------------------------------------------------------
 
-fabgl::VGA2Controller DisplayController;
+//fabgl::VGA2Controller DisplayController;
+//fabgl::ST7789Controller DisplayController;
+fabgl::ILI9341Controller DisplayController;
 fabgl::Canvas         Canvas(&DisplayController);
 
 uint8_t ScreenBuffer::currentMonitorMode = 0;
@@ -236,20 +238,37 @@ TRSScreen::TRSScreen()
   top = nullptr;
 }
 
+#define TFT_SCK    14
+#define TFT_MOSI   13
+#define TFT_DC     22
+#define TFT_RESET  21
+#define TFT_CS     15
+#define TFT_SPIBUS HSPI_HOST
+
 void TRSScreen::init()
 {
+#if 0
 #ifdef CONFIG_POCKET_TRS_TTGO_VGA32_SUPPORT
   DisplayController.begin(GPIO_NUM_22, GPIO_NUM_21, GPIO_NUM_19, GPIO_NUM_18, GPIO_NUM_5, GPIO_NUM_4, GPIO_NUM_23, GPIO_NUM_15);
 #else
   DisplayController.begin(VGA_RED, VGA_GREEN, VGA_BLUE, VGA_HSYNC, VGA_VSYNC);
 #endif
-  DisplayController.setResolution(VGA_512x192_60Hz);
+#endif
+  DisplayController.begin(TFT_SCK, TFT_MOSI, TFT_DC, TFT_RESET, TFT_CS, TFT_SPIBUS);
+  DisplayController.setResolution(TFT_240x320);
+  DisplayController.setOrientation(fabgl::TFTOrientation::Rotate90, true);
+  Canvas.clear();
+
+//  DisplayController.setResolution(VGA_512x192_60Hz);
+#if 0
   DisplayController.enableBackgroundPrimitiveExecution(false);
   DisplayController.enableBackgroundPrimitiveTimeout(false);
 
   Canvas.setBrushColor(Color::Black);
   Canvas.setGlyphOptions(GlyphOptions().FillBackground(true));
   Canvas.setPenColor(Color::White);
+  Canvas.drawLine(0,0,239,319);
+#endif
 }
 
 void TRSScreen::push(ScreenBuffer* screenBuffer)
@@ -381,6 +400,7 @@ screen_color_t SettingsScreen::getScreenColor() {
 void SettingsScreen::setScreenColor(screen_color_t color) {
   nvs_set_u8(KEY_COLOR, color);
 
+#if 0
 #ifdef CONFIG_POCKET_TRS_TTGO_VGA32_SUPPORT
   switch(color) {
     case SCREEN_COLOR_WHITE:
@@ -397,6 +417,7 @@ void SettingsScreen::setScreenColor(screen_color_t color) {
   for (int i = 0; i < 3; i++) {
     writeDigiPot(i, wiper_settings[color][i]);
   }
+#endif
 #endif
 }
 
