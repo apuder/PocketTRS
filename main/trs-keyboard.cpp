@@ -290,6 +290,11 @@ void process_key(int vk, bool down)
     shiftPressed = down;
   }
   
+  if (vk < 0 || vk >= sizeof(trsKeys) / sizeof(trsKeys[0])) {
+    // Not a key of the TRS-80
+    return;
+  }
+
   int offset = trsKeys[vk].offset;
 
   if (offset != 0) {

@@ -24,3 +24,6 @@ fp-info-cache
 sdkconfig
 sdkconfig.old
 managed_components/
+
+# clangd
+.cache/
