@@ -14,6 +14,7 @@
 #include "wifi.h"
 #include "event.h"
 #include "trs_io_host.h"
+#include "bluetooth.h"
 #include "freertos/task.h"
 
 #include "trs-io.h"
@@ -68,6 +69,9 @@ void setup() {
   vTaskDelay(5000 / portTICK_PERIOD_MS);
   //settingsCalibration.setScreenOffset();
   PS2Controller.begin(PS2Preset::KeyboardPort0, KbdMode::CreateVirtualKeysQueue);
+  // After VGA and Wi-Fi have taken the internal memory they need
+  init_bluetooth();
+  init_bluetooth_web();
 
   z80_reset(0);
 
@@ -87,7 +91,8 @@ void loop() {
     z80_reset();
   }
 
-  if (keyboard == nullptr || !keyboard->isKeyboardAvailable()) {
+  // Keys come from the PS/2 keyboard or from a Bluetooth one (bluetooth.cpp)
+  if (keyboard == nullptr) {
     return;
   }
   if (keyboard->virtualKeyAvailable()) {

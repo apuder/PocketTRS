@@ -5,6 +5,7 @@ idf_component_register(SRCS ${app_sources}
                        REQUIRES trs-io
                                 trs-lib
                                 FabGL
+                                bt_keyboard
                                 freertos
                                 nvs_flash
                                 esp_timer

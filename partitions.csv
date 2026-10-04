@@ -1,6 +1,6 @@
 # Name,   Type, SubType, Offset,  Size, Flags
 nvs,      data, nvs,     ,        0x6000,
 phy_init, data, phy,     ,        0x1000,
-factory,  app,  factory, ,        0x200000,
+factory,  app,  factory, ,        0x300000,
 # TRS-IO's web UI (gzipped), built by components/trs-io/CMakeLists.txt
 html,     data, spiffs,  ,        256K,

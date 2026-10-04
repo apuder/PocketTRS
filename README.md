@@ -61,6 +61,10 @@ Once the PocketTRS card is assembled, connect a VGA monitor, a PS/2 keyboard and
 * &lt;ESC&gt; - TRS-80 &lt;BREAK&gt; key
 * '\\'         - TRS-80 &lt;CLEAR&gt; key
 
+Instead of a PS/2 keyboard, a Bluetooth keyboard (Bluetooth Low Energy) can be used. It is paired in the web interface
+(<a href="trs-io.local">trs-io.local</a>, Settings, Bluetooth Keyboard): put the keyboard in pairing mode, press *Scan* and then *Pair*
+next to the keyboard's name. From then on the keyboard connects by itself.
+
 &lt;F5&gt; allows the configuration of various aspects of PocketTRS, including setting up Wifi credentials and TRS-IO. Once Wifi is setup, the printer interface can be accessed via <a href="trs-io.local/printer">trs-io.local/printer</a>.
 
 Use the configuration settings to activate TRS-IO. Alternatively it is possible to connect an external TRS-IO/FreHD card via the 50-pin expansion interface. In that case make sure that the internal TRS-IO is disabled.

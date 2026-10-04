@@ -2,6 +2,7 @@
 #include "ui.h"
 #include "calibrate.h"
 #include "trs_io_host.h"
+#include "bluetooth.h"
 #include "trs_screen.h"
 #include "fabgl.h"
 #include <freertos/task.h>
@@ -110,6 +111,13 @@ void configure_pocket_trs()
       status();
       break;
     case MENU_RESET:
+      if (bt_kbd_unpair()) {
+        static bt_kbd_status_t bt EXT_RAM_BSS_ATTR;
+        do {
+          vTaskDelay(100 / portTICK_PERIOD_MS);
+          bt_kbd_get_status(&bt);
+        } while (bt.activity != BT_KBD_IDLE);
+      }
       SettingsBase::reset();
       trs_io_host_reset_settings();
       esp_restart();
