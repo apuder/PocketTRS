@@ -6,6 +6,8 @@
 #include "spi.h"
 #include "config.h"
 #include "wifi.h"
+#include "http.h"
+#include "trs_io_host.h"
 #include "settings.h"
 
 
@@ -31,7 +33,7 @@ uint8_t ScreenBuffer::currentMonitorMode = 0;
 
 ScreenBuffer::ScreenBuffer(uint8_t mode)
 {
-  this->screenBuffer = (byte*) malloc(MAX_TRS_SCREEN_WIDTH * MAX_TRS_SCREEN_HEIGHT);
+  this->screenBuffer = (uint8_t*) malloc(MAX_TRS_SCREEN_WIDTH * MAX_TRS_SCREEN_HEIGHT);
   assert(screenBuffer != NULL);
   this->width = 0;
   this->height = 0;
@@ -61,7 +63,7 @@ void ScreenBuffer::setMode(uint8_t mode)
     screen_chars = 64 * 16;
     char_width = TRS_M3_CHAR_WIDTH;
     char_height = TRS_M3_CHAR_HEIGHT;
-    font = (byte*) font_m3;
+    font = (uint8_t*) font_m3;
     if (changes & MODE_TEXT_64x16) {
       changeResolution = true;
     }
@@ -73,7 +75,7 @@ void ScreenBuffer::setMode(uint8_t mode)
     screen_chars = 80 * 24;
     char_width = TRS_M4_CHAR_WIDTH;
     char_height = TRS_M4_CHAR_HEIGHT;
-    font = (byte*) font_m4;
+    font = (uint8_t*) font_m4;
     if (changes & MODE_TEXT_80x24) {
       changeResolution = true;
       hires = true;
@@ -192,7 +194,7 @@ int ScreenBuffer::isExpandedMode()
   return (currentMonitorMode & MODE_EXPANDED) != 0;
 }
 
-void ScreenBuffer::drawChar(ushort pos, byte character)
+void ScreenBuffer::drawChar(ushort pos, uint8_t character)
 {
   if (pos >= screen_chars) {
     return;
@@ -220,7 +222,7 @@ void ScreenBuffer::drawChar(ushort pos, byte character)
     font, character);
 }
 
-bool ScreenBuffer::getChar(ushort pos, byte& character)
+bool ScreenBuffer::getChar(ushort pos, uint8_t& character)
 {
   if (pos < screen_chars) {
     character = screenBuffer[pos];
@@ -313,7 +315,7 @@ bool TRSScreen::isTextMode()
   return (top->getMode() & MODE_GRAFYX) == 0;
 }
 
-void TRSScreen::drawChar(ushort pos, byte character)
+void TRSScreen::drawChar(ushort pos, uint8_t character)
 {
   assert(top != nullptr);
   //if (isTextMode()) {
@@ -321,7 +323,7 @@ void TRSScreen::drawChar(ushort pos, byte character)
   //}
 }
 
-bool TRSScreen::getChar(ushort pos, byte& character)
+bool TRSScreen::getChar(ushort pos, uint8_t& character)
 {
   assert(top != nullptr);
   return top->getChar(pos, character);
@@ -347,7 +349,7 @@ void TRSScreen::screenshot()
   ushort pos = 0;
   for (int y = 0; y < getHeight(); y++) {
     for (int x = 0; x < getWidth(); x++) {
-      byte ch;
+      uint8_t ch;
       getChar(pos++, ch);
       trs_printer_write(ch);
     }
@@ -398,6 +400,8 @@ void SettingsScreen::setScreenColor(screen_color_t color) {
     writeDigiPot(i, wiper_settings[color][i]);
   }
 #endif
+  // TRS-IO's web UI shows and sets the same color.
+  trs_io_host_set_screen_color((uint8_t) color);
 }
 
 SettingsScreen settingsScreen;

@@ -19,3 +19,8 @@ _autosave-*
 *-save.kicad_pcb
 fp-info-cache
 *~
+
+# ESP-IDF
+sdkconfig
+sdkconfig.old
+managed_components/

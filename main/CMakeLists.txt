@@ -1,12 +1,14 @@
-# This file was automatically generated for projects
-# without default 'CMakeLists.txt' file.
-
-FILE(GLOB_RECURSE app_sources ${CMAKE_SOURCE_DIR}/main/*.*)
+file(GLOB app_sources "*.cpp" "*.c")
 
 idf_component_register(SRCS ${app_sources}
                        INCLUDE_DIRS .
                        REQUIRES trs-io
                                 trs-lib
+                                FabGL
                                 freertos
                                 nvs_flash
-                                FabGL)
+                                esp_timer
+                                esp_adc
+                                esp_driver_dac
+                                esp_driver_gpio
+                                esp_driver_spi)

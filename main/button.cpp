@@ -1,6 +1,8 @@
 
 #include "button.h"
 #include "driver/gpio.h"
+#include "soc/gpio_struct.h"
+#include "esp_timer.h"
 #include "esp_event.h"
 
 #define GPIO_BUTTON GPIO_NUM_35

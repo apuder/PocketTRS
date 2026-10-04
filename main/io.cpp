@@ -8,6 +8,8 @@
 #include "i2s.h"
 #include "trs-io.h"
 #include "wifi.h"
+#include "http.h"
+#include "trs_io_host.h"
 #include "frehd.h"
 #include "config.h"
 #include "settings.h"
@@ -15,7 +17,13 @@
 
 
 static uint8_t modeimage = 8;
-static uint8_t port_0xe0 = 0b11110011;
+static volatile uint8_t port_0xe0 = 0b11110011;
+
+// The current TRS-IO command is done: bit 3 of port E0H tells the Z80.
+static void trs_io_done()
+{
+  port_0xe0 &= ~(1 << 3);
+}
 static uint8_t port_0xec = 0xff;
 static uint8_t last_c8 = 0x80;
 static int ctrlimage = 0;
@@ -120,8 +128,11 @@ void z80_out(uint8_t address, uint8_t data, tstate_t z80_state_t_count)
       return;
     } else if (address == 31) {
       if (!TrsIO::outZ80(data)) {
-        TrsIO::processInBackground();
-        port_0xe0 &= ~(1 << 3);
+        // A module may finish later, from another task: it then calls
+        // trs_io_done() itself (see init_io()).
+        if (!TrsIO::processInBackground()) {
+          trs_io_done();
+        }
       }
       return;
     }
@@ -229,6 +240,7 @@ uint8_t z80_in(uint8_t address, tstate_t z80_state_t_count)
 void init_io()
 {
   init_frehd();
+  trs_io_host_set_done_handler(trs_io_done);
 #ifndef DISABLE_IO
   init_spi();
 #endif

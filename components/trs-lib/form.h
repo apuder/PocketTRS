@@ -31,7 +31,7 @@ typedef struct {
 typedef struct {
   int8_t first; // Used internally. Not a parameter
   uint8_t* selected;
-  const char* (*items)[];
+  const char* const* items;
 } form_select_t;
   
 typedef struct {

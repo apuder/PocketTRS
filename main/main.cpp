@@ -12,9 +12,8 @@
 #include "button.h"
 #include "led.h"
 #include "wifi.h"
-#include "ota.h"
-#include "storage.h"
 #include "event.h"
+#include "trs_io_host.h"
 #include "freertos/task.h"
 
 #include "trs-io.h"
@@ -24,24 +23,48 @@
 
 fabgl::PS2Controller  PS2Controller;
 
+// The phosphor color picked in TRS-IO's web UI. Called from the web server's
+// task; TRS-IO has already stored its copy.
+static void apply_web_screen_color(uint8_t color)
+{
+  if (color <= SCREEN_COLOR_AMBER) {
+    settingsScreen.setScreenColor((screen_color_t) color);
+  }
+}
+
+// What TRS-IO's own main loop does besides serving the Z80: once Wi-Fi is
+// up, mount the SMB share and start the web server.
+static void trs_io_task(void* arg)
+{
+  while (true) {
+    trs_io_host_poll();
+    vTaskDelay(250 / portTICK_PERIOD_MS);
+  }
+}
+
 
 void setup() {
 #if 1
-  printf("Heap size before VGA init: %d\n", esp_get_free_heap_size());
-  printf("DRAM size before VGA init: %d\n", heap_caps_get_free_size(MALLOC_CAP_INTERNAL));
+  printf("Heap size before VGA init: %u\n", (unsigned) esp_get_free_heap_size());
+  printf("DRAM size before VGA init: %u\n", (unsigned) heap_caps_get_free_size(MALLOC_CAP_INTERNAL));
 #endif
 
   init_button();
   init_events();
   init_trs_io();
-  init_storage();
+  // TRS-IO's settings (Wi-Fi, SMB share, time zone; NVS "retrostore")
+  trs_io_host_init();
   init_io();
   init_i2s();
   trs_screen.init();
+  // Also gives TRS-IO's web UI the current phosphor color
   init_settings();
+  trs_io_host_set_screen_color_handler(apply_web_screen_color);
   show_splash();
   init_trs_fs_posix();
-  init_wifi();
+  // Wi-Fi, the web UI and, from trs_io_task, the SMB share
+  trs_io_host_start_network();
+  xTaskCreatePinnedToCore(trs_io_task, "trs-io", 6000, NULL, 1, NULL, 1);
   vTaskDelay(5000 / portTICK_PERIOD_MS);
   //settingsCalibration.setScreenOffset();
   PS2Controller.begin(PS2Preset::KeyboardPort0, KbdMode::CreateVirtualKeysQueue);
@@ -49,8 +72,8 @@ void setup() {
   z80_reset(0);
 
 #if 1
-  printf("Heap size after VGA init: %d\n", esp_get_free_heap_size());
-  printf("DRAM size after VGA init: %d\n", heap_caps_get_free_size(MALLOC_CAP_INTERNAL));
+  printf("Heap size after VGA init: %u\n", (unsigned) esp_get_free_heap_size());
+  printf("DRAM size after VGA init: %u\n", (unsigned) heap_caps_get_free_size(MALLOC_CAP_INTERNAL));
 #endif
 }
 

@@ -1,9 +1,9 @@
 
 #include "settings.h"
-#include "wifi.h"
-#include "trs-fs.h"
-#include "ntp_sync.h"
-#include "esp_event_loop.h"
+#include "trs_io_host.h"
+#include "esp_system.h"
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
 
 extern "C" {
 #include "ui.h"
@@ -31,9 +31,12 @@ static bool enable_trs_io = true;
 
 static form_item_t configuration_form[14];
 
+// The form keeps pointers into this.
+static trs_io_host_config_t config;
+
 void configure()
 {
-  trs_io_wifi_config_t* config = get_wifi_config();
+  trs_io_host_get_config(&config);
   init_form_begin(configuration_form);
   init_form_header("GENERAL:");
   init_form_checkbox("Show splash screen", &show_splash_screen);
@@ -42,14 +45,14 @@ void configure()
 #endif
   form_item_t* rom = init_form_select("ROM", &rom_type, rom_items);
   init_form_select("Screen color", &screen_color, screen_color_items);
-  form_item_t* tz = init_form_input("Timezone", 0, MAX_LEN_TZ, config->tz);
+  form_item_t* tz = init_form_input("Timezone", 0, sizeof(config.tz) - 1, config.tz);
   init_form_header("WIFI:");
-  form_item_t* ssid = init_form_input("SSID", 0, MAX_LEN_SSID, config->ssid);
-  form_item_t* passwd = init_form_input("Password", 0, MAX_LEN_PASSWD, config->passwd);
+  form_item_t* ssid = init_form_input("SSID", 0, sizeof(config.ssid) - 1, config.ssid);
+  form_item_t* passwd = init_form_input("Password", 0, sizeof(config.passwd) - 1, config.passwd);
   init_form_header("SMB:");
-  form_item_t* smb_url = init_form_input("URL", 40, MAX_LEN_SMB_URL, config->smb_url);
-  form_item_t* smb_user = init_form_input("User", 0, MAX_LEN_SMB_USER, config->smb_user);
-  form_item_t* smb_passwd = init_form_input("Password", 0, MAX_LEN_SMB_PASSWD, config->smb_passwd);
+  form_item_t* smb_url = init_form_input("URL", 40, sizeof(config.smb_url) - 1, config.smb_url);
+  form_item_t* smb_user = init_form_input("User", 0, sizeof(config.smb_user) - 1, config.smb_user);
+  form_item_t* smb_passwd = init_form_input("Password", 0, sizeof(config.smb_passwd) - 1, config.smb_passwd);
 #ifdef CONFIG_POCKET_TRS_TTGO_VGA32_SUPPORT
   init_form_header("");
 #endif
@@ -69,17 +72,20 @@ void configure()
 #endif
 
   if (smb_url->dirty || smb_user->dirty || smb_passwd->dirty) {
-    init_trs_fs_smb(config->smb_url, config->smb_user, config->smb_passwd);
+    trs_io_host_set_smb(config.smb_url, config.smb_user, config.smb_passwd);
   }
 
   if (tz->dirty) {
-    set_timezone(config->tz);
+    trs_io_host_set_tz(config.tz);
   }
 
   if (ssid->dirty || passwd->dirty || rom->dirty) {
     wnd_popup("Rebooting PocketTRS...");
     vTaskDelay(2000 / portTICK_PERIOD_MS);
-    set_wifi_credentials(config->ssid, config->passwd);
+    if (ssid->dirty || passwd->dirty) {
+      trs_io_host_set_wifi(config.ssid, config.passwd);
+    }
+    esp_restart();
   }
 }
 

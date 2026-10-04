@@ -85,8 +85,8 @@ typedef unsigned char Uchar;
 
 /* We allow for 2MB of banked memory via port 0x94. That is the extreme limit
    of the port mods rather than anything normal (512K might be more 'normal' */
-Uchar memory[2 * 64 * 1024] EXT_RAM_ATTR;
-Uchar video[MAX_VIDEO_SIZE + 1] EXT_RAM_ATTR;
+Uchar memory[2 * 64 * 1024] EXT_RAM_BSS_ATTR;
+Uchar video[MAX_VIDEO_SIZE + 1] EXT_RAM_BSS_ATTR;
 const Uchar* rom = model3_frehd_rom;
 int trs_rom_size = model3_frehd_rom_len;
 int lowercase = 1;

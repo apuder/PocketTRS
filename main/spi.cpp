@@ -19,7 +19,7 @@ spi_device_handle_t spi_mcp23x_h;
 static spi_device_interface_config_t spi_mcp4351;
 spi_device_handle_t spi_mcp4351_h;
 
-static xQueueHandle gpio_evt_queue = NULL;
+static QueueHandle_t gpio_evt_queue = NULL;
 
 
 void writePortExpander(uint8_t addr, uint8_t cmd, uint8_t data)
@@ -229,7 +229,7 @@ void init_spi()
     .quadhd_io_num = -1,
     .max_transfer_sz = 4000,
   };
-  esp_err_t ret = spi_bus_initialize(HSPI_HOST, &bus_cfg, 1);
+  esp_err_t ret = spi_bus_initialize(SPI2_HOST, &bus_cfg, 1);
   if (ret != ESP_OK) {
     ESP_LOGE("SPI", "Failed to initialize bus");
   }
@@ -249,7 +249,7 @@ void init_spi()
   spi_mcp23x.queue_size = 1;
   spi_mcp23x.pre_cb = NULL;
   spi_mcp23x.post_cb = NULL;
-  ret = spi_bus_add_device(HSPI_HOST, &spi_mcp23x, &spi_mcp23x_h);
+  ret = spi_bus_add_device(SPI2_HOST, &spi_mcp23x, &spi_mcp23x_h);
   ESP_ERROR_CHECK(ret);
 
   /*
@@ -293,7 +293,7 @@ void init_spi()
   spi_mcp4351.queue_size = 1;
   spi_mcp4351.pre_cb = NULL;
   spi_mcp4351.post_cb = NULL;
-  ret = spi_bus_add_device(HSPI_HOST, &spi_mcp4351, &spi_mcp4351_h);
+  ret = spi_bus_add_device(SPI2_HOST, &spi_mcp4351, &spi_mcp4351_h);
   ESP_ERROR_CHECK(ret);
 
 #ifdef CONFIG_POCKET_TRS_TEST_PCB

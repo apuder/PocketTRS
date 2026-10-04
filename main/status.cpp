@@ -1,5 +1,6 @@
 
 #include "wifi.h"
+#include "trs_io_host.h"
 #include "trs-fs.h"
 #include "version-ptrs.h"
 #include "version.h"
@@ -56,7 +57,7 @@ void status()
   wnd_cr(&wnd);
 
   wnd_print(&wnd, false, "WiFi SSID           : ");
-  wnd_print(&wnd, false, get_wifi_ssid());
+  wnd_print(&wnd, false, trs_io_host_wifi_ssid());
   wnd_cr(&wnd);
 
   wnd_print(&wnd, false, "WiFi IP             : ");

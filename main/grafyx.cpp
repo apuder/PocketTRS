@@ -15,7 +15,7 @@ extern fabgl::Canvas Canvas;
 #define G_XSIZE 128
 #define G_YSIZE 256
 
-static unsigned char grafyx_unscaled[G_YSIZE][G_XSIZE] EXT_RAM_ATTR;
+static unsigned char grafyx_unscaled[G_YSIZE][G_XSIZE] EXT_RAM_BSS_ATTR;
 static unsigned char grafyx_microlabs = 0;
 static unsigned char grafyx_x = 0, grafyx_y = 0, grafyx_mode = 0;
 static unsigned char grafyx_enable = 0;

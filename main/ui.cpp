@@ -1,7 +1,7 @@
 
 #include "ui.h"
 #include "calibrate.h"
-#include "storage.h"
+#include "trs_io_host.h"
 #include "trs_screen.h"
 #include "fabgl.h"
 #include <freertos/task.h>
@@ -111,7 +111,7 @@ void configure_pocket_trs()
       break;
     case MENU_RESET:
       SettingsBase::reset();
-      storage_erase();
+      trs_io_host_reset_settings();
       esp_restart();
       break;
     case MENU_HELP:

@@ -12,8 +12,8 @@ PocketTRS uses a modern microcontroller to emulate a TRS-80 personal computer. I
 
 ### Firmware
 
-The heart of PocketTRS is an ESP32-based microcontroller. The firmware can be compiled using Espressif's ESP-IDF version 4.2. First install the
-<a href="https://docs.espressif.com/projects/esp-idf/en/release-v4.2/esp32/get-started/index.html#step-1-install-prerequisites">ESP-IDF toolchain</a> for your platform. Next clone the PocketTRS git repository and compile the firmware via:
+The heart of PocketTRS is an ESP32-based microcontroller. The firmware can be compiled using Espressif's ESP-IDF version 6.0. First install the
+<a href="https://docs.espressif.com/projects/esp-idf/en/release-v6.0/esp32/get-started/index.html">ESP-IDF toolchain</a> for your platform. Next clone the PocketTRS git repository and compile the firmware via:
 
 ```
 git clone --recursive https://github.com/apuder/PocketTRS.git

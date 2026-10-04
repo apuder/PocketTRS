@@ -68,7 +68,7 @@ static void draw_select_field_items(form_select_t* sel)
     const char* item;
     bool frame;
     
-    item = (*sel->items)[current];
+    item = sel->items[current];
     if (item == NULL) {
       current = 0;
       continue;
@@ -86,7 +86,7 @@ static void draw_select_field(form_select_t* sel, bool has_focus)
   if (!has_focus) {
     sel->first = *sel->selected;
     wnd_print(&wnd_form, false, " ");
-    wnd_print(&wnd_form, false, (*sel->items)[*sel->selected]);
+    wnd_print(&wnd_form, false, sel->items[*sel->selected]);
     wnd_clear_eol(&wnd_form);
     return;
   }
@@ -170,13 +170,13 @@ static bool handle_key_for_select(uint8_t n, char key, form_select_t* sel)
   
   if (key == ' ' || key == KEY_RIGHT) {
     selected++;
-    if ((*sel->items)[selected] == NULL) {
+    if (sel->items[selected] == NULL) {
       selected = 0;
     }
   }
   if (key == KEY_LEFT) {
     if (selected == 0) {
-      while ((*sel->items)[++selected] != NULL) ;
+      while (sel->items[++selected] != NULL) ;
     }
     selected--;
   }

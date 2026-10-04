@@ -1,8 +1,9 @@
-# The following five lines of boilerplate have to be in your project's
+# The following lines of boilerplate have to be in your project's
 # CMakeLists in this exact order for cmake to work correctly
-cmake_minimum_required(VERSION 3.5)
+cmake_minimum_required(VERSION 3.22)
 
-add_compile_definitions(SNTP_STARTUP_DELAY=0)
+# What FabGL needs (ULP for PS/2, 240 MHz, 1 ms ticks, ...), then PocketTRS's own
+set(SDKCONFIG_DEFAULTS "${CMAKE_CURRENT_LIST_DIR}/components/FabGL/idf/sdkconfig.fabgl;${CMAKE_CURRENT_LIST_DIR}/sdkconfig.defaults")
 
 include($ENV{IDF_PATH}/tools/cmake/project.cmake)
 project(PocketTRS)

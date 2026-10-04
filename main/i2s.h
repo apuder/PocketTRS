@@ -3,8 +3,7 @@
 
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
-#include <driver/i2s.h>
-#include <driver/adc.h>
+#include <freertos/semphr.h>
 
 
 //#define NOISE_FLOOR 1024
@@ -24,7 +23,7 @@ typedef unsigned char Uchar;
 typedef unsigned char Uint8;
 typedef unsigned short Uint16;
 typedef Uint16 Ushort;
-typedef unsigned int Uint32;
+typedef uint32_t Uint32;
 
 
 #define SOUND_RING_SIZE 16000
