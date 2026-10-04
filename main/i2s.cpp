@@ -1,5 +1,6 @@
 
 #include "i2s.h"
+#include "esp_attr.h"
 #include "esp_adc/adc_continuous.h"
 #include "driver/dac_continuous.h"
 #include <stdlib.h>
@@ -111,7 +112,8 @@ static void i2sWrite(uint8_t* buf)
 
 static portMUX_TYPE DRAM_ATTR mux = portMUX_INITIALIZER_UNLOCKED;
 
-static volatile uint8_t ring_buffer[RING_BUFFER_SIZE];
+// In PSRAM: only tasks read and write it
+static volatile uint8_t ring_buffer[RING_BUFFER_SIZE] EXT_RAM_BSS_ATTR;
 static volatile uint8_t *ring_buffer_read_ptr = ring_buffer;
 static volatile uint8_t *ring_buffer_write_ptr = ring_buffer;
 static volatile uint8_t *ring_buffer_end = ring_buffer + RING_BUFFER_SIZE;
