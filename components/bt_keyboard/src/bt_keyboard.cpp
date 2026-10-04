@@ -1222,8 +1222,21 @@ bool BTKeyboard::connect_paired() {
   }
 
   esp_ble_bond_dev_t *first_device = dev_list.get();
-  return esp_hidh_dev_open(first_device->bd_addr, ESP_HID_TRANSPORT_BLE,
-                           BLE_ADDR_TYPE_RPA_PUBLIC) != nullptr;
+#if CONFIG_IDF_TARGET_ESP32
+  // The ESP32's controller (BLE 4.2) has no link layer privacy: it rejects
+  // "LE Create Connection" for the RPA address types. Ask for the keyboard
+  // by the address it was paired with, public or random.
+  const esp_ble_addr_type_t addr_type =
+      (first_device->bd_addr_type == BLE_ADDR_TYPE_PUBLIC ||
+       first_device->bd_addr_type == BLE_ADDR_TYPE_RPA_PUBLIC)
+          ? BLE_ADDR_TYPE_PUBLIC
+          : BLE_ADDR_TYPE_RANDOM;
+#else
+  const esp_ble_addr_type_t addr_type = BLE_ADDR_TYPE_RPA_PUBLIC;
+#endif
+  ESP_LOGD(TAG, "connecting to paired " ESP_BD_ADDR_STR " (address type %d, paired as %d)",
+           ESP_BD_ADDR_HEX(first_device->bd_addr), addr_type, first_device->bd_addr_type);
+  return esp_hidh_dev_open(first_device->bd_addr, ESP_HID_TRANSPORT_BLE, addr_type) != nullptr;
 }
 
 // Close the open device, if any, and wait briefly for the close to land.
